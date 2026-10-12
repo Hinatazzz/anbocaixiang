@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>上班族每月定投记录</title>
+<title>Hinata定投记录</title>
 <style>
 /* ---------- 字体 ---------- */
 @font-face { font-family:'Plex Mono'; src:url(fonts/plex-mono-400.woff2) format('woff2'); font-weight:400; font-display:swap; }
@@ -213,8 +213,6 @@ a{color:inherit;text-decoration:none}
 .callout b{color:var(--ink)}
 .callout .up,.note .up{color:var(--up)}
 .callout .down,.note .down{color:var(--down)}
-.pitfall-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
-.pitfall-grid .callout{margin:10px 0}
 
 /* ---------- 图表 ---------- */
 .chart{position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-y}
@@ -224,6 +222,9 @@ a{color:inherit;text-decoration:none}
 .chart .cost{stroke:var(--ink-2);stroke-dasharray:5 4;stroke-width:1;shape-rendering:crispEdges}
 .chart .buy{fill:var(--mark);stroke:var(--ink);stroke-width:1}
 .chart .tick{font:10.5px var(--f-num);fill:var(--ink-3)}
+.alloc .a-name{font:600 15px/1 var(--f-sans);fill:var(--ink)}
+.alloc .a-val{font:500 13px/1 var(--f-num);fill:var(--ink-2)}
+.alloc .a-pct{font:700 18px/1 var(--f-num);fill:var(--ink)}
 
 /* ---------- 提示 ---------- */
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
@@ -251,7 +252,6 @@ a{color:inherit;text-decoration:none}
   .fig:first-child{grid-column:1 / -1}
   .fig:nth-child(2){border-left:0;padding-left:0}
   .fig:nth-child(2),.fig:nth-child(3){border-top:1px solid var(--hair)}
-  .pitfall-grid{grid-template-columns:1fr}
   .rec-form{grid-template-columns:repeat(3,minmax(0,1fr))}
   .nav-input{width:100%}
 }
@@ -285,7 +285,7 @@ a{color:inherit;text-decoration:none}
 
   <!-- 报头：品牌 + 时钟 + 三市场状态 -->
   <header class="mast">
-    <div class="brand"><h1>上班族每月定投记录</h1><small>MONTHLY DCA RECORD</small></div>
+    <div class="brand"><h1>Hinata定投记录</h1></div>
     <div class="mast-meta">
       <span class="clock" id="clock">—</span>
       <span class="mkts" id="mkts"></span>
@@ -318,24 +318,15 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
     <div class="fig fig-chart">
-      <div class="fig-label"><span>资产分布</span><span class="en">ALLOCATION</span></div>
+      <div class="fig-label"><span>定投微笑曲线</span><span class="en">SMILE CURVE</span></div>
       <div class="chart">
-        <svg viewBox="0 0 260 96" role="img" aria-label="资产分布：按分组的市值占比">
-          <text class="tick" x="0" y="11">纳指100</text>
-          <rect x="58" y="2" width="150" height="9" fill="#151513"/>
-          <text class="tick" x="258" y="11" text-anchor="end" style="fill:#151513">46.3%</text>
-          <text class="tick" x="0" y="31">标普500</text>
-          <rect x="58" y="22" width="91" height="9" fill="#151513"/>
-          <text class="tick" x="258" y="31" text-anchor="end" style="fill:#151513">28.2%</text>
-          <text class="tick" x="0" y="51">黄金</text>
-          <rect x="58" y="42" width="50" height="9" fill="#151513"/>
-          <text class="tick" x="258" y="51" text-anchor="end" style="fill:#151513">15.5%</text>
-          <text class="tick" x="0" y="71">进攻股</text>
-          <rect x="58" y="62" width="28" height="9" fill="#151513"/>
-          <text class="tick" x="258" y="71" text-anchor="end" style="fill:#151513">8.7%</text>
-          <text class="tick" x="0" y="91">海外股</text>
-          <rect x="58" y="82" width="4" height="9" fill="#151513"/>
-          <text class="tick" x="258" y="91" text-anchor="end" style="fill:#151513">1.3%</text>
+        <svg viewBox="0 0 260 96" role="img" aria-label="定投微笑曲线：净值先下跌后回升，坚持扣款最终回到高位">
+          <line class="cost" x1="18" y1="50" x2="250" y2="50"/>
+          <path class="line" d="M18,26 C55,95 95,95 132,74 C172,55 200,40 244,20"/>
+          <circle class="buy" cx="132" cy="74" r="4"/>
+          <text class="tick" x="18" y="93" style="font-size:9.5px">下跌 · 攒份额</text>
+          <text class="tick" x="250" y="13" text-anchor="end" style="font-size:9.5px">上涨 · 赚收益</text>
+          <text class="tick" x="250" y="46" text-anchor="end" style="font-size:9.5px;fill:var(--ink-2)">平均成本</text>
         </svg>
       </div>
     </div>
@@ -377,12 +368,9 @@ a{color:inherit;text-decoration:none}
     <div class="sec-tabs" role="tablist">
       <button role="tab" class="on" data-tab="hold" aria-selected="true"><span class="sec-no">01</span>持仓<span class="sec-no">13 只</span></button>
       <button role="tab" data-tab="plans" aria-selected="false"><span class="sec-no">02</span>定投计划</button>
-      <button role="tab" data-tab="mistakes" aria-selected="false"><span class="sec-no">03</span>常见误区</button>
     </div>
     <div class="sec-tools">
       <span data-tools="hold"><button class="btn primary" id="addBtn">＋ 添加基金</button></span>
-      <span data-tools="plans"><button class="linkish small" data-go="mistakes">看看常见误区</button></span>
-      <span data-tools="mistakes"><button class="linkish small" data-go="hold">回到持仓</button></span>
     </div>
   </div>
 
@@ -422,12 +410,12 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="rec-actions">
           <button class="btn primary" type="submit">记下这一笔</button>
-          <button class="btn small" type="button" id="fillNavBtn">按代码取当前净值</button>
-          <span class="rec-preview">预计确认份额 <b id="pvShares">—</b> 份</span>
+          <button class="btn small local-only" type="button" id="fillNavBtn" style="display:none">按代码取当前净值</button>
+          <span class="rec-preview local-only" id="pvPreview" style="display:none">预计确认份额 <b id="pvShares">—</b> 份</span>
         </div>
       </form>
       <p class="field-hint" style="margin-top:12px">
-        份额 = 买入金额 ÷ 买入净值，自动计算。填了代码就能一键拉最新净值、自动算收益。
+        份额 = 买入金额 ÷ 买入净值，自动计算；下方「我的加仓汇总」里填了代码的基金，会自动拉净值算收益。
         数据只存在<b>本机这个浏览器</b>里，换手机或清缓存会丢，请定期「导出备份」。
       </p>
     </div>
@@ -505,6 +493,39 @@ a{color:inherit;text-decoration:none}
         「最新净值」列可手填覆盖。红 = 盈利，绿 = 亏损（A 股习惯）。
       </p>
     </div>
+
+    <!-- 总资产分布（放大版，按 2026-10-13 快照净值） -->
+    <div id="allocBlock">
+      <div class="sec-sub-head"><h3>总资产分布</h3><span class="sec-no">ALLOCATION · SNAPSHOT 2026-10-13</span></div>
+      <div class="chart alloc">
+        <svg viewBox="0 0 1180 180" role="img" aria-label="总资产分布：纳指100 46.3%、标普500 28.2%、黄金 15.5%、进攻股 8.7%、海外股 1.3%">
+          <text class="a-name" x="0" y="17">纳指100</text>
+          <rect x="130" y="0" width="482" height="20" fill="#151513"/>
+          <text class="a-val" x="624" y="16">¥3,446.86</text>
+          <text class="a-pct" x="1180" y="17" text-anchor="end">46.3%</text>
+          <text class="a-name" x="0" y="53">标普500</text>
+          <rect x="130" y="36" width="293" height="20" fill="#151513"/>
+          <text class="a-val" x="435" y="52">¥2,096.07</text>
+          <text class="a-pct" x="1180" y="53" text-anchor="end">28.2%</text>
+          <text class="a-name" x="0" y="89">黄金</text>
+          <rect x="130" y="72" width="161" height="20" fill="#151513"/>
+          <text class="a-val" x="303" y="88">¥1,156.75</text>
+          <text class="a-pct" x="1180" y="89" text-anchor="end">15.5%</text>
+          <text class="a-name" x="0" y="125">进攻股</text>
+          <rect x="130" y="108" width="90" height="20" fill="#151513"/>
+          <text class="a-val" x="232" y="124">¥644.11</text>
+          <text class="a-pct" x="1180" y="125" text-anchor="end">8.7%</text>
+          <text class="a-name" x="0" y="161">海外股</text>
+          <rect x="130" y="144" width="14" height="20" fill="#151513"/>
+          <text class="a-val" x="156" y="160">¥99.16</text>
+          <text class="a-pct" x="1180" y="161" text-anchor="end">1.3%</text>
+        </svg>
+      </div>
+      <p class="note" style="margin:12px 0 6px">
+        按 <b>2026-10-13 快照净值</b>计算的市值占比（打开页面后净值会自动刷新，本图不随刷新重算）。
+        纳指100 + 标普500 合计约 <b>74.5%</b>，是组合主力；黄金做对冲、进攻股小仓位博弹性。
+      </p>
+    </div>
   </div>
 
   <!-- 02 定投计划 -->
@@ -551,33 +572,6 @@ a{color:inherit;text-decoration:none}
         </div>
         <p class="note" style="margin:10px 0 0">约 2,250 元/月。金额与频率如有调整以实际扣款为准，本表为 2026-10-13 快照。</p>
       </div>
-      <div class="block">
-        <div class="block-title"><h4>我的规矩</h4><span class="sec-no">RULES</span></div>
-        <ul class="ledger">
-          <li>固定金额、固定频率，不因涨跌临时改。</li>
-          <li>大跌不恐慌赎回，同样的钱买<b>更多份额</b>。</li>
-          <li>每年<b>再平衡</b>一次，偏离超 5% 就调回目标仓位。</li>
-          <li>不追热点、不频繁换基，换手也是成本。</li>
-        </ul>
-        <div class="callout">
-          <b>一句话版</b>：把「什么时候买、买多少」交给纪律，把「买什么」交给研究，剩下的交给时间。
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 03 常见误区 -->
-  <div class="sec-panel" id="panel-mistakes">
-    <div class="sec-body">
-      <div class="pitfall-grid">
-        <div class="callout warn"><b>亏了就当定投失败</b><br>恰恰相反 —— 下跌时同样的钱能买到<b>更多份额</b>。真正的失败是低位停扣。</div>
-        <div class="callout warn"><b>跌了赶紧加倍抄底</b><br>「越跌越加倍」容易变成仓位失控。<b>固定金额、固定日期</b>才是纪律。</div>
-        <div class="callout"><b>不看费率随便买</b><br>申购费、赎回费、销售服务费、管理费，看着零点几，长期是复利的<b>隐形杀手</b>。</div>
-        <div class="callout"><b>只看收益率不看类型</b><br>「近一年 +30%」可能是个行业主题基金。先看清<b>类型 + 跟踪标的</b>再下手。</div>
-        <div class="callout"><b>跌了就换基金</b><br>卖掉亏损的、追买入正在涨的，等于<b>卖低买高</b>，来回换手还有成本。</div>
-        <div class="callout warn"><b>把定投当保本理财</b><br>基金<b>不保本、也会亏</b>。定投只是摊平成本，靠的是长期和纪律。</div>
-      </div>
-      <p class="note" style="margin:16px 0 6px">这些坑，我踩过一半。写在这里提醒自己，也供参考。</p>
     </div>
   </div>
 
@@ -586,7 +580,7 @@ a{color:inherit;text-decoration:none}
     <p>本页持仓为 <b>2026-10-13 真实快照</b>（13 只），净值每次打开自动刷新，QDII 有 T+2 延迟；
       指数条为演示数据。本站仅作个人记录，<b>不构成投资建议</b>。<br>
       定投记录与基金知识学习备忘 · 投资有风险，入市需谨慎。</p>
-    <span id="footDate">上班族每月定投记录 · —</span>
+    <span id="footDate">Hinata定投记录 · —</span>
   </footer>
 
 </div>
@@ -599,6 +593,18 @@ a{color:inherit;text-decoration:none}
   var $ = function(id){ return document.getElementById(id); };
   function pad(n){ return (n < 10 ? '0' : '') + n; }
 
+  /* ---------- 环境判断：后台（本机 / 127.0.0.1 / 本地文件）才显示辅助项 ---------- */
+  function isLocalHost(){
+    var host = location.hostname || '';
+    return location.protocol === 'file:' || host === '127.0.0.1' || host === 'localhost' || host === '[::1]' || host === '';
+  }
+  function applyLocalOnly(){
+    var on = isLocalHost();
+    var els = document.querySelectorAll('.local-only');
+    for (var i = 0; i < els.length; i++) els[i].style.display = on ? '' : 'none';
+  }
+  applyLocalOnly();
+
   /* ---------- 定投天数（起点 2026-08-11 = 第 1 天） ---------- */
   var DCA_START = new Date(2026, 7, 11);
   function dcaDays(){
@@ -610,7 +616,7 @@ a{color:inherit;text-decoration:none}
   var days = dcaDays();
   var dayEl = $('dcaDay');
   if (dayEl) dayEl.textContent = '第 ' + days + ' 天';
-  document.title = '上班族每月定投记录 第' + days + '天';
+  document.title = 'Hinata定投记录 第' + days + '天';
 
   /* ---------- 时钟 + 页脚日期 ---------- */
   var WD = ['日','一','二','三','四','五','六'];
@@ -620,7 +626,7 @@ a{color:inherit;text-decoration:none}
     var s = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()) +
             ' 周' + WD[t.getDay()] + ' ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
     if (clockEl) clockEl.textContent = s;
-    if (footEl) footEl.textContent = '上班族每月定投记录 · ' + t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+    if (footEl) footEl.textContent = 'Hinata定投记录 · ' + t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
   }
   tick();
   setInterval(tick, 1000);
@@ -654,7 +660,7 @@ a{color:inherit;text-decoration:none}
 
   /* ---------- 标签页 ---------- */
   var tabBtns = document.querySelectorAll('.sec-tabs button');
-  var panels = { hold: $('panel-hold'), plans: $('panel-plans'), mistakes: $('panel-mistakes') };
+  var panels = { hold: $('panel-hold'), plans: $('panel-plans') };
   var toolSpans = document.querySelectorAll('[data-tools]');
   function showTab(name){
     var i;
@@ -681,7 +687,6 @@ a{color:inherit;text-decoration:none}
     var h = (location.hash || '').replace('#', '');
     if (h === 'holdings') showTab('hold');
     else if (h === 'plans') showTab('plans');
-    else if (h === 'mistakes') showTab('mistakes');
   }
   window.addEventListener('hashchange', fromHash);
   fromHash();
@@ -1200,7 +1205,7 @@ a{color:inherit;text-decoration:none}
   if (!window.__noAutoNav) refreshRealNavs(true);
 
   /* 测试 / 调试钩子 */
-  window.__dca = { REAL: REAL, renderHoldings: renderHoldings, refreshRealNavs: refreshRealNavs };
+  window.__dca = { REAL: REAL, renderHoldings: renderHoldings, refreshRealNavs: refreshRealNavs, applyLocalOnly: applyLocalOnly };
 })();
 </script>
 
