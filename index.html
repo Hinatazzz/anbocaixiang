@@ -1,277 +1,712 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>上班族每月定投记录</title>
 <style>
+/* ---------- 字体 ---------- */
+@font-face { font-family:'Plex Mono'; src:url(fonts/plex-mono-400.woff2) format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Plex Mono'; src:url(fonts/plex-mono-500.woff2) format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Plex Mono'; src:url(fonts/plex-mono-600.woff2) format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Plex Cond'; src:url(fonts/plex-cond-500.woff2) format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Plex Cond'; src:url(fonts/plex-cond-600.woff2) format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Plex Cond'; src:url(fonts/plex-cond-700.woff2) format('woff2'); font-weight:700; font-display:swap; }
+
+/* ---------- 设计变量（暖白纸 · 墨色字 · 细线分隔 · 直角） ---------- */
 :root{
-  --bg:#05060c; --bg2:#0a0d1a; --panel:rgba(10,14,28,.72); --panel-b:rgba(0,240,255,.22);
-  --tx:#e8f6ff; --tx2:#7c8fa8; --tx3:#4a5a72;
-  --ac:#00f0ff; --ac2:#ff2d95; --ac3:#ffe600;
-  --up:#ff2d78; --down:#00e39a;
-  --grid:rgba(0,240,255,.055);
+  --paper:#f2efe8; --paper-2:#e8e4d9; --paper-3:#ded9cc;
+  --ink:#151513; --ink-2:#4b4943; --ink-3:#8b877d;
+  --hair:#cdc7b9; --rule:#151513;
+  --red:#c42a1f; --green:#127a3e;
+  --up:var(--red); --down:var(--green);       /* A 股习惯：红涨绿跌 */
+  --up-bg:rgba(196,42,31,.12); --down-bg:rgba(18,122,62,.12);
+  --mark:#f3c316; --on-mark:#151513;
+  --f-sans:-apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC','Noto Sans CJK SC',system-ui,sans-serif;
+  --f-num:'Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --f-disp:'Plex Cond','PingFang SC','Microsoft YaHei',sans-serif;
+  color-scheme:light;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);color:var(--tx);
-  font-family:"SF Mono",Menlo,Consolas,-apple-system,"PingFang SC","Microsoft YaHei",monospace;
-  line-height:1.75;overflow-x:hidden;position:relative;
+*,*::before,*::after{box-sizing:border-box;border-radius:0 !important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:14px/1.55 var(--f-sans);-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--mark);color:var(--on-mark)}
+
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.up{color:var(--up)}
+.down{color:var(--down)}
+.flat{color:var(--ink-2)}
+.muted{color:var(--ink-3)}
+.small{font-size:12px}
+.nowrap{white-space:nowrap}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+/* ---------- 报头 ---------- */
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;
+  padding:22px 0 12px;border-bottom:4px solid var(--rule)}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand h1{margin:0;font-size:28px;line-height:1;font-weight:800;letter-spacing:.06em}
+.brand small{font:600 11px/1 var(--f-disp);letter-spacing:.24em;color:var(--ink-3)}
+.mast-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;font-size:12.5px;color:var(--ink-2)}
+.clock{font:500 12.5px var(--f-num);color:var(--ink)}
+.mkts{display:flex;gap:14px}
+.mkt{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3);white-space:nowrap}
+.mkt i{width:9px;height:9px;border:1.5px solid currentColor;display:inline-block}
+.mkt.open{color:var(--ink)}
+.mkt.open i{background:currentColor}
+.mkt.break{color:var(--ink-2)}
+.mkt.break i{box-shadow:inset 4px 0 0 currentColor}
+.mkt b{font-weight:600}
+.tool{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:4px 0;cursor:pointer;
+  color:var(--ink-2);font-size:12.5px;font-family:inherit}
+.tool:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.tool .glyph{font-size:14px;line-height:1}
+
+/* ---------- 总览四格 ---------- */
+.summary{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.25fr);
+  border-bottom:1px solid var(--rule)}
+.fig{padding:20px 20px 18px;min-width:0}
+.fig:first-child{padding-left:0}
+.fig + .fig{border-left:1px solid var(--hair)}
+.fig-label{font-size:12px;color:var(--ink-2);letter-spacing:.04em;display:flex;justify-content:space-between;gap:8px}
+.fig-label .en{font:600 10px var(--f-disp);letter-spacing:.2em;color:var(--ink-3)}
+.fig-big{font:600 54px/1.02 var(--f-disp);letter-spacing:-.015em;margin:8px 0 6px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.fig-mid{font:600 27px/1.12 var(--f-disp);margin:8px 0 4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fig-sub{font-size:12.5px;color:var(--ink-2);display:flex;gap:10px;flex-wrap:wrap}
+.fig-sub .num{font-size:13px}
+.fig-chart{position:relative}
+.fig-chart .chart{margin-top:6px}
+
+/* ---------- 指数条 ---------- */
+.strip-wrap{display:flex;align-items:stretch;border-bottom:1px solid var(--rule)}
+.strip{display:flex;overflow-x:auto;flex:1;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.strip-item{flex:0 0 auto;padding:10px 22px 10px 0;margin-right:22px;border-right:1px solid var(--hair);min-width:132px}
+.strip-item:last-child{border-right:0}
+.strip-name{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.strip-val{display:flex;gap:10px;align-items:baseline}
+.strip-val .num:first-child{font-size:14px;font-weight:500}
+.strip-val .num + .num{font-size:12.5px}
+.strip-edit{border:0;border-left:1px solid var(--hair);background:none;padding:0 0 0 16px;cursor:pointer;
+  color:var(--ink-2);font-size:12px;white-space:nowrap;font-family:inherit}
+.strip-edit:hover{color:var(--ink);background:var(--mark);color:var(--on-mark)}
+
+/* ---------- 区块头 / 标签页 ---------- */
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:30px 0 12px;border-bottom:2px solid var(--rule)}
+.sec-tabs{display:flex;align-items:flex-end;gap:28px}
+.sec-tabs button{display:flex;align-items:baseline;gap:10px;background:none;border:0;cursor:pointer;
+  font:800 20px/1.3 var(--f-sans);letter-spacing:.04em;color:var(--ink-3);
+  padding:0 0 10px;margin-bottom:-12px;border-bottom:4px solid transparent;font-family:inherit}
+.sec-tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.sec-tabs button:hover:not(.on){color:var(--ink-2)}
+.sec-no{font:600 12px var(--f-num);color:var(--ink-3);letter-spacing:0}
+.sec-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sec-panel{display:none}
+.sec-panel.on{display:block}
+
+/* ---------- 分组条 / 排序 ---------- */
+.gbar{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding:14px 0 4px}
+.seg{display:inline-flex;border:1.5px solid var(--ink);max-width:100%;overflow-x:auto}
+.seg button{border:0;background:none;padding:8px 12px;font:600 12.5px/1.2 var(--f-sans);
+  color:var(--ink-2);cursor:pointer;white-space:nowrap;font-family:inherit}
+.seg button + button{border-left:1.5px solid var(--ink)}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.seg button:hover:not(.on){background:var(--mark);color:var(--on-mark)}
+.seg.small button{padding:6px 9px;font-size:12px}
+.gcount{font-family:var(--f-num);font-weight:500;opacity:.6;margin-left:2px}
+
+/* ---------- 按钮 ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font:600 13.5px/1 var(--f-sans);padding:11px 16px;border:1.5px solid var(--ink);
+  background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap;letter-spacing:.02em;font-family:inherit}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:hover:not([disabled]){background:var(--mark);border-color:var(--mark);color:var(--on-mark)}
+.btn.small{padding:7px 10px;font-size:12.5px}
+.linkish{background:none;border:0;padding:0;cursor:pointer;color:var(--ink);text-decoration:underline;
+  text-decoration-color:var(--ink-3);text-underline-offset:3px;font-size:inherit;font-family:inherit}
+.linkish:hover{text-decoration-color:var(--ink);background:var(--mark);color:var(--on-mark)}
+
+/* ---------- 持仓表 ---------- */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font:500 11.5px/1.2 var(--f-sans);color:var(--ink-3);text-align:right;padding:10px 12px 9px;
+  border-bottom:1px solid var(--hair);letter-spacing:.04em;white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left;padding-left:0}
+.tbl th:last-child,.tbl td:last-child{padding-right:0}
+.tbl td{padding:13px 12px;border-bottom:1px solid var(--hair);text-align:right;vertical-align:top}
+.fund-name{font-weight:650;font-size:14.5px;line-height:1.35}
+.fund-meta{font-size:11.5px;color:var(--ink-3);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.tag{font-size:10.5px;line-height:1;padding:2px 4px;border:1px solid currentColor;color:var(--ink-2);white-space:nowrap}
+.tag.solid{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell-main{font:500 15px/1.3 var(--f-num);white-space:nowrap}
+.cell-big{font:600 17px/1.2 var(--f-num);white-space:nowrap}
+.cell-sub{font-size:11.5px;color:var(--ink-3);margin-top:4px;white-space:nowrap}
+.tbl tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--rule)}
+.tbl tfoot td .cell-main{font-weight:600}
+
+/* ---------- 手机卡片 ---------- */
+.cards{display:none}
+.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;padding:14px 0 13px;
+  border-bottom:1px solid var(--hair);cursor:default;background:none;border-left:0;border-right:0;
+  border-top:0;width:100%;text-align:left;font-family:inherit}
+.card .pct-big{font:600 20px/1.2 var(--f-num);text-align:right}
+.card .right-sub{text-align:right;font-size:12px;color:var(--ink-3)}
+.card-figs{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.card-figs div{display:grid;gap:1px}
+.card-figs span:first-child{font-size:11px;color:var(--ink-3)}
+.card-figs .num{font-size:13.5px}
+
+/* ---------- 文字区块 ---------- */
+.sec-body{padding:6px 0 4px}
+.block{padding:18px 0;border-bottom:1px solid var(--hair)}
+.block:last-child{border-bottom:0}
+.block-title{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.block-title h4{margin:0;font-size:14px;font-weight:800;letter-spacing:.03em}
+.note{font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.note b{color:var(--ink)}
+.ledger{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.ledger li{position:relative;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.6}
+.ledger li:before{content:"—";position:absolute;left:0;color:var(--ink-3)}
+.ledger li b{color:var(--ink)}
+.callout{border-left:4px solid var(--mark);padding:8px 12px;background:var(--paper-2);
+  font-size:12.5px;color:var(--ink-2);line-height:1.65;margin:12px 0}
+.callout.warn{border-left-color:var(--up)}
+.callout b{color:var(--ink)}
+.callout .up,.note .up{color:var(--up)}
+.callout .down,.note .down{color:var(--down)}
+.pitfall-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.pitfall-grid .callout{margin:10px 0}
+
+/* ---------- 图表 ---------- */
+.chart{position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart .line{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+.chart .grid{stroke:var(--hair);stroke-width:1;shape-rendering:crispEdges}
+.chart .cost{stroke:var(--ink-2);stroke-dasharray:5 4;stroke-width:1;shape-rendering:crispEdges}
+.chart .buy{fill:var(--mark);stroke:var(--ink);stroke-width:1}
+.chart .tick{font:10.5px var(--f-num);fill:var(--ink-3)}
+
+/* ---------- 提示 ---------- */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:100;background:var(--ink);color:var(--paper);padding:11px 16px 11px 14px;font-size:13.5px;
+  border-left:6px solid var(--mark);max-width:calc(100vw - 32px);display:none;animation:fade .15s ease-out}
+.toast.show{display:block}
+@keyframes fade{from{opacity:0}}
+
+/* ---------- 页脚 ---------- */
+.foot{margin:40px 0 36px;padding-top:12px;border-top:1px solid var(--rule);
+  display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:12px;color:var(--ink-3)}
+.foot p{margin:0;max-width:720px;line-height:1.7}
+.foot b{color:var(--ink-2)}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1080px){
+  .summary{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr)}
+  .fig-chart{grid-column:1 / -1;border-left:0 !important;border-top:1px solid var(--hair);padding-left:0}
+  .fig-big{font-size:46px}
 }
-/* 网格底纹 + 扫描线 */
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
-                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:46px 46px;
+@media (max-width:860px){
+  .tbl{display:none}
+  .cards{display:block}
+  .summary{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .fig:first-child{grid-column:1 / -1}
+  .fig:nth-child(2){border-left:0;padding-left:0}
+  .fig:nth-child(2),.fig:nth-child(3){border-top:1px solid var(--hair)}
+  .pitfall-grid{grid-template-columns:1fr}
 }
-body:after{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;
-  background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.16) 2px 4px);
-  mix-blend-mode:multiply;opacity:.5;
+@media (max-width:640px){
+  body{font-size:14.5px}
+  .wrap{padding:0 16px}
+  .mast{padding-top:14px}
+  .brand h1{font-size:24px}
+  .mast-meta{gap:6px 14px;font-size:12px}
+  .fig{padding:14px 12px 13px}
+  .fig.fig-chart{padding-left:0;padding-right:0}
+  .fig-big{font-size:44px}
+  .fig-mid{font-size:21px}
+  .sec-head{padding-top:22px}
+  .sec-tabs{gap:20px}
+  .sec-tabs button{font-size:18px;gap:6px}
+  .sec-tools{width:100%;justify-content:space-between}
 }
-.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 22px}
-
-/* 顶部条 */
-.top{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);
-  background:rgba(5,6,12,.82);border-bottom:1px solid rgba(0,240,255,.16)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
-.brand{font-size:13px;letter-spacing:.24em;color:var(--ac);text-transform:uppercase;
-  text-shadow:0 0 12px rgba(0,240,255,.6)}
-.brand b{color:#fff}
-.topnav{display:flex;gap:20px;font-size:12px;letter-spacing:.12em}
-.topnav a{color:var(--tx2);text-decoration:none;transition:all .25s;position:relative}
-.topnav a:hover{color:var(--ac);text-shadow:0 0 10px rgba(0,240,255,.7)}
-
-/* 分区 */
-section{padding:78px 0;position:relative}
-.sec-k{font-size:11px;letter-spacing:.3em;color:var(--ac2);margin-bottom:12px;text-transform:uppercase}
-.sec-k:before{content:"// ";opacity:.6}
-h1{font-size:clamp(38px,7.4vw,80px);line-height:1.06;letter-spacing:-.02em;font-weight:800}
-h2{font-size:clamp(26px,4vw,42px);line-height:1.15;letter-spacing:-.01em;font-weight:800;margin-bottom:10px}
-h3{font-size:16px;font-weight:700;letter-spacing:.02em;margin-bottom:10px}
-
-/* 故障字 */
-.glitch{position:relative;display:inline-block;
-  text-shadow:0 0 26px rgba(0,240,255,.45)}
-.glitch:before,.glitch:after{
-  content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;
-}
-.glitch:before{color:var(--ac2);animation:gl1 3.4s infinite steps(2);clip-path:inset(0 0 62% 0)}
-.glitch:after{color:var(--ac);animation:gl2 2.7s infinite steps(2);clip-path:inset(58% 0 0 0)}
-@keyframes gl1{0%,88%,100%{transform:translate(0)}90%{transform:translate(-3px,-2px)}94%{transform:translate(2px,1px)}}
-@keyframes gl2{0%,84%,100%{transform:translate(0)}86%{transform:translate(3px,2px)}92%{transform:translate(-2px,-1px)}}
-
-/* 英雄区 */
-.hero{padding:96px 0 72px;border-bottom:1px solid rgba(0,240,255,.12)}
-.eyebrow{font-size:12px;letter-spacing:.32em;color:var(--ac2);margin-bottom:20px}
-.daybadge{display:inline-block;margin-bottom:26px;padding:10px 22px;border-radius:6px;
-  border:1px solid var(--ac);background:linear-gradient(90deg,rgba(0,240,255,.14),rgba(255,45,149,.1));
-  font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;letter-spacing:.04em;
-  box-shadow:0 0 24px rgba(0,240,255,.28),inset 0 0 24px rgba(0,240,255,.1)}
-.hero p.lead{font-size:15.5px;color:var(--tx2);max-width:640px;margin-top:22px}
-
-/* 按钮 */
-.btns{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:4px;
-  font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;cursor:pointer;border:1px solid;
-  transition:all .25s}
-.btn-a{background:var(--ac);border-color:var(--ac);color:#02060d;
-  box-shadow:0 0 22px rgba(0,240,255,.45)}
-.btn-a:hover{background:#fff;border-color:#fff;box-shadow:0 0 32px rgba(255,255,255,.6)}
-.btn-b{background:transparent;border-color:var(--ac2);color:var(--ac2)}
-.btn-b:hover{background:var(--ac2);color:#0a0410;box-shadow:0 0 26px rgba(255,45,149,.6)}
-
-/* 卡片 / 表 */
-.grid{display:grid;gap:18px;margin-top:32px}
-.g3{grid-template-columns:repeat(auto-fit,minmax(272px,1fr))}
-.panel{background:var(--panel);border:1px solid var(--panel-b);border-radius:8px;padding:24px 22px;
-  position:relative;transition:all .3s;backdrop-filter:blur(8px)}
-.panel:before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:var(--ac)}
-.panel:after{content:"";position:absolute;bottom:0;right:0;width:34px;height:2px;background:var(--ac2)}
-.panel:hover{border-color:var(--ac);transform:translateY(-4px);
-  box-shadow:0 0 30px rgba(0,240,255,.2)}
-.panel p{font-size:14px;color:var(--tx2);line-height:1.85}
-.panel ul{list-style:none;margin:0}
-.panel li{font-size:14px;color:var(--tx2);padding-left:18px;position:relative;margin:8px 0;line-height:1.8}
-.panel li:before{content:"▸";position:absolute;left:0;color:var(--ac)}
-.panel li b,.panel p b{color:#fff}
-
-.tblwrap{overflow-x:auto;margin-top:30px;border:1px solid var(--panel-b);border-radius:8px;
-  background:var(--panel);backdrop-filter:blur(8px)}
-table{width:100%;border-collapse:collapse;min-width:680px;font-size:13.5px}
-th{text-align:right;padding:15px 16px;font-size:11.5px;letter-spacing:.14em;color:var(--ac);
-  text-transform:uppercase;border-bottom:1px solid var(--ac);white-space:nowrap;
-  background:rgba(0,240,255,.05)}
-th:first-child{text-align:left}
-td{padding:14px 16px;text-align:right;border-bottom:1px solid rgba(255,255,255,.055);
-  white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--tx2)}
-td:first-child{text-align:left;color:#fff;font-weight:600}
-tbody tr{transition:background .2s}
-tbody tr:hover{background:rgba(0,240,255,.06)}
-tr.total td{color:#fff;font-weight:800;border-top:1px solid var(--ac);border-bottom:none;
-  background:rgba(0,240,255,.07)}
-.up{color:var(--up)!important;font-weight:700}
-.down{color:var(--down)!important;font-weight:700}
-.tag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:11px;font-weight:700;
-  letter-spacing:.04em;border:1px solid}
-.tag-idx{color:var(--ac);border-color:rgba(0,240,255,.5);background:rgba(0,240,255,.1)}
-.tag-fac{color:var(--ac3);border-color:rgba(255,230,0,.5);background:rgba(255,230,0,.1)}
-.tag-qd{color:var(--ac2);border-color:rgba(255,45,149,.5);background:rgba(255,45,149,.1)}
-.note{margin-top:20px;font-size:12.5px;color:var(--tx3);line-height:1.9}
-.foot{padding:60px 0 70px;border-top:1px solid rgba(0,240,255,.12);text-align:center;
-  font-size:12px;color:var(--tx3);letter-spacing:.08em}
-@media(max-width:760px){
-  section{padding:58px 0}
-  .hero{padding:66px 0 52px}
-  .topnav{display:none}
-  table{font-size:12.5px;min-width:620px}
-  th,td{padding:11px 11px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
 }
 </style>
 </head>
 <body>
 
-<header class="top" id="top">
-  <div class="wrap">
-    <div class="brand"><b>每月定投记录</b></div>
-    <nav class="topnav">
-      <a href="#plans">定投计划</a>
-      <a href="#holdings">持仓表</a>
-      <a href="#mistakes">常见误区</a>
-      <a href="#top">回到顶部</a>
-    </nav>
-  </div>
-</header>
+<div class="wrap">
 
-<section class="hero" id="home">
-  <div class="wrap">
-    <div class="eyebrow">MONTHLY INVESTMENT RECORD</div>
-    <div class="daybadge" id="dcaDay">第 — 天</div>
-    <h1>上班族每月定投记录</h1>
-    <p class="lead">从 2026 年 8 月 11 日起，每月固定一笔，不猜点位、只做纪律。<br>
-      这里记录我的定投计划、持仓变化，和踩过的那些坑。</p>
-    <div class="btns">
-      <a class="btn btn-a" href="#holdings">查看持仓表</a>
-      <a class="btn btn-b" href="#mistakes">看看踩过的坑</a>
+  <!-- 报头：品牌 + 时钟 + 三市场状态 -->
+  <header class="mast">
+    <div class="brand"><h1>上班族每月定投记录</h1><small>MONTHLY DCA RECORD</small></div>
+    <div class="mast-meta">
+      <span class="clock" id="clock">—</span>
+      <span class="mkts" id="mkts"></span>
+      <button class="tool" id="refreshBtn" title="刷新页面"><span class="glyph">↻</span>刷新</button>
+      <a class="tool" href="#top">回到顶部</a>
+    </div>
+  </header>
+
+  <!-- 总览四格 -->
+  <section class="summary">
+    <div class="fig">
+      <div class="fig-label"><span>定投进行中</span><span class="en">DCA DAY</span></div>
+      <div class="fig-big" id="dcaDay">第 — 天</div>
+      <div class="fig-sub">
+        <span>起始 2026-08-11</span><span>每月 11 日扣款</span>
+      </div>
+    </div>
+    <div class="fig">
+      <div class="fig-label"><span>累计投入</span><span class="en">INVESTED</span></div>
+      <div class="fig-mid"><span style="font-size:.42em;font-weight:500;margin-right:6px;color:var(--ink-2)">¥</span>3,000.00</div>
+      <div class="fig-sub">
+        <span>3 期 × ¥1,000</span><span>宽基 / 因子 / 海外</span>
+      </div>
+    </div>
+    <div class="fig">
+      <div class="fig-label"><span>持有收益</span><span class="en">P&amp;L</span></div>
+      <div class="fig-mid up">+102.50</div>
+      <div class="fig-sub">
+        <span>收益率 <span class="up">+3.42%</span></span><span>最差单只 <span class="down">−6.82%</span></span>
+      </div>
+    </div>
+    <div class="fig fig-chart">
+      <div class="fig-label"><span>定投微笑曲线</span><span class="en">SMILE CURVE</span></div>
+      <div class="chart">
+        <svg viewBox="0 0 260 96" role="img" aria-label="定投微笑曲线示意图">
+          <line class="grid" x1="0" y1="24" x2="260" y2="24"/>
+          <line class="grid" x1="0" y1="48" x2="260" y2="48"/>
+          <line class="grid" x1="0" y1="72" x2="260" y2="72"/>
+          <path class="line" d="M2 22 C 46 56 86 74 130 70 C 174 66 214 40 258 18"/>
+          <path class="cost" d="M2 40 C 70 48 150 48 258 40"/>
+          <circle class="buy" cx="22" cy="40" r="3.2"/>
+          <circle class="buy" cx="62" cy="59" r="3.2"/>
+          <circle class="buy" cx="102" cy="71" r="3.2"/>
+          <circle class="buy" cx="142" cy="68" r="3.2"/>
+          <circle class="buy" cx="182" cy="52" r="3.2"/>
+          <circle class="buy" cx="222" cy="30" r="3.2"/>
+          <text class="tick" x="258" y="12" text-anchor="end">净值</text>
+          <text class="tick" x="258" y="58" text-anchor="end">定投成本</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 关注指数条 -->
+  <div class="strip-wrap">
+    <div class="strip">
+      <div class="strip-item" title="沪深300">
+        <div class="strip-name">沪深300</div>
+        <div class="strip-val"><span class="num">4,357.62</span><span class="num up">+0.29%</span></div>
+      </div>
+      <div class="strip-item" title="中证A500">
+        <div class="strip-name">中证A500</div>
+        <div class="strip-val"><span class="num">5,370.26</span><span class="num up">+0.19%</span></div>
+      </div>
+      <div class="strip-item" title="恒生科技指数">
+        <div class="strip-name">恒生科技指数</div>
+        <div class="strip-val"><span class="num">14,146.99</span><span class="num down">−2.51%</span></div>
+      </div>
+      <div class="strip-item" title="恒生指数">
+        <div class="strip-name">恒生指数</div>
+        <div class="strip-val"><span class="num">23,932.47</span><span class="num down">−2.77%</span></div>
+      </div>
+      <div class="strip-item" title="纳斯达克100">
+        <div class="strip-name">纳斯达克100</div>
+        <div class="strip-val"><span class="num">30,501.56</span><span class="num up">+0.31%</span></div>
+      </div>
+      <div class="strip-item" title="标普500">
+        <div class="strip-name">标普500</div>
+        <div class="strip-val"><span class="num">7,666.45</span><span class="num up">+0.19%</span></div>
+      </div>
+    </div>
+    <button class="strip-edit" id="stripEdit">行情说明</button>
+  </div>
+
+  <!-- 区块头：标签页 -->
+  <div class="sec-head">
+    <div class="sec-tabs" role="tablist">
+      <button role="tab" class="on" data-tab="hold" aria-selected="true"><span class="sec-no">01</span>持仓<span class="sec-no">4 只</span></button>
+      <button role="tab" data-tab="plans" aria-selected="false"><span class="sec-no">02</span>定投计划</button>
+      <button role="tab" data-tab="mistakes" aria-selected="false"><span class="sec-no">03</span>常见误区</button>
+    </div>
+    <div class="sec-tools">
+      <span data-tools="hold"><button class="btn primary" id="addBtn">＋ 添加基金</button></span>
+      <span data-tools="plans"><button class="linkish small" data-go="mistakes">看看常见误区</button></span>
+      <span data-tools="mistakes"><button class="linkish small" data-go="hold">回到持仓</button></span>
     </div>
   </div>
-</section>
 
-<section id="plans">
-  <div class="wrap">
-    <div class="sec-k">PLANS</div>
-    <h2>定投计划</h2>
-    <p style="color:var(--tx2);font-size:15px">为什么选它、投了什么、给自己定了哪些规矩。</p>
-    <div class="grid g3">
-      <div class="panel">
-        <h3>为什么选定投</h3>
-        <ul>
-          <li><b>摊平成本</b>：每月固定金额，净值高时买得少、低时买得多。</li>
-          <li><b>省时省心</b>：上班族没空盯盘，设好自动扣款就不用管。</li>
-          <li><b>强制储蓄</b>：发薪日先划走，先投资再消费。</li>
+  <!-- 01 持仓 -->
+  <div class="sec-panel on" id="panel-hold">
+    <div class="gbar">
+      <div class="seg small" id="grpSeg">
+        <button class="on" data-g="all">全部<span class="gcount">4</span></button>
+        <button data-g="idx">宽基<span class="gcount">2</span></button>
+        <button data-g="fac">因子<span class="gcount">1</span></button>
+        <button data-g="qd">海外<span class="gcount">1</span></button>
+      </div>
+      <div class="seg small" id="sortSeg">
+        <button class="on" data-sort="default">默认</button>
+        <button data-sort="value">金额</button>
+        <button data-sort="pnl">收益率</button>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>基金 · 类型</th><th>定投日</th><th>持有金额</th><th>当前仓位</th>
+          <th>累计盈亏</th><th>最新一日</th><th>收益率</th>
+        </tr>
+      </thead>
+      <tbody id="holdBody">
+        <tr data-g="idx" data-v="1200" data-p="4.87" data-i="0">
+          <td><div class="fund-name">沪深300 指数基金</div>
+            <div class="fund-meta"><span class="tag">宽基</span><span class="tag">定投 500/月</span><span>跟踪 沪深300</span></div></td>
+          <td><div class="cell-main">每月 11 日</div><div class="cell-sub">已扣 3 期</div></td>
+          <td><div class="cell-main">1,200.00</div><div class="cell-sub">成本净值 1.0535</div></td>
+          <td><div class="cell-main">40.0%</div><div class="cell-sub">目标 40%</div></td>
+          <td><div class="cell-main up">+146.46</div><div class="cell-sub">成本 ¥1,053.54</div></td>
+          <td><div class="cell-main up">+42.63</div><div class="cell-sub up">+3.55%</div></td>
+          <td><div class="cell-big up">+4.87%</div></td>
+        </tr>
+        <tr data-g="fac" data-v="900" data-p="3.11" data-i="1">
+          <td><div class="fund-name">中证红利低波 100</div>
+            <div class="fund-meta"><span class="tag">因子</span><span class="tag">定投 300/月</span><span>股息 + 低波双因子</span></div></td>
+          <td><div class="cell-main">每月 11 日</div><div class="cell-sub">已扣 3 期</div></td>
+          <td><div class="cell-main">900.00</div><div class="cell-sub">成本净值 0.9420</div></td>
+          <td><div class="cell-main">30.0%</div><div class="cell-sub">目标 30%</div></td>
+          <td><div class="cell-main up">+52.20</div><div class="cell-sub">成本 ¥847.80</div></td>
+          <td><div class="cell-main up">+28.20</div><div class="cell-sub up">+3.13%</div></td>
+          <td><div class="cell-big up">+3.11%</div></td>
+        </tr>
+        <tr data-g="qd" data-v="600" data-p="-6.82" data-i="2">
+          <td><div class="fund-name">纳斯达克100（QDII）</div>
+            <div class="fund-meta"><span class="tag">海外</span><span class="tag">定投 200/月</span><span>限购中 · 注意汇率</span></div></td>
+          <td><div class="cell-main">每月 11 日</div><div class="cell-sub">已扣 3 期</div></td>
+          <td><div class="cell-main">600.00</div><div class="cell-sub">成本净值 1.1822</div></td>
+          <td><div class="cell-main">20.0%</div><div class="cell-sub">目标 20%</div></td>
+          <td><div class="cell-main down">−109.33</div><div class="cell-sub">成本 ¥709.33</div></td>
+          <td><div class="cell-main down">−35.04</div><div class="cell-sub down">−5.84%</div></td>
+          <td><div class="cell-big down">−6.82%</div></td>
+        </tr>
+        <tr data-g="idx" data-v="300" data-p="2.28" data-i="3">
+          <td><div class="fund-name">中证 A500 指数基金</div>
+            <div class="fund-meta"><span class="tag">宽基</span><span class="tag">手动买入</span><span>跟踪 中证A500</span></div></td>
+          <td><div class="cell-main">—</div><div class="cell-sub">非定投</div></td>
+          <td><div class="cell-main">300.00</div><div class="cell-sub">成本净值 0.9561</div></td>
+          <td><div class="cell-main">10.0%</div><div class="cell-sub">目标 10%</div></td>
+          <td><div class="cell-main up">+13.17</div><div class="cell-sub">成本 ¥286.83</div></td>
+          <td><div class="cell-main up">+6.84</div><div class="cell-sub up">+2.28%</div></td>
+          <td><div class="cell-big up">+2.28%</div></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>合计</td><td>—</td>
+          <td><div class="cell-main">3,000.00</div></td>
+          <td><div class="cell-main">100%</div></td>
+          <td><div class="cell-main up">+102.50</div></td>
+          <td><div class="cell-main up">+42.63</div></td>
+          <td><div class="cell-big up">+3.42%</div></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- 手机卡片版 -->
+    <div class="cards" id="holdCards">
+      <button type="button" class="card" data-g="idx">
+        <div>
+          <div class="fund-name">沪深300 指数基金</div>
+          <div class="fund-meta"><span class="tag">宽基</span><span class="tag">定投 500/月</span></div>
+        </div>
+        <div>
+          <div class="pct-big up">+4.87%</div>
+          <div class="right-sub">持有 1,200.00</div>
+        </div>
+        <div class="card-figs">
+          <div><span>仓位</span><span class="num">40.0%</span></div>
+          <div><span>累计盈亏</span><span class="num up">+146.46</span></div>
+          <div><span>最新一日</span><span class="num up">+42.63</span></div>
+        </div>
+      </button>
+      <button type="button" class="card" data-g="fac">
+        <div>
+          <div class="fund-name">中证红利低波 100</div>
+          <div class="fund-meta"><span class="tag">因子</span><span class="tag">定投 300/月</span></div>
+        </div>
+        <div>
+          <div class="pct-big up">+3.11%</div>
+          <div class="right-sub">持有 900.00</div>
+        </div>
+        <div class="card-figs">
+          <div><span>仓位</span><span class="num">30.0%</span></div>
+          <div><span>累计盈亏</span><span class="num up">+52.20</span></div>
+          <div><span>最新一日</span><span class="num up">+28.20</span></div>
+        </div>
+      </button>
+      <button type="button" class="card" data-g="qd">
+        <div>
+          <div class="fund-name">纳斯达克100（QDII）</div>
+          <div class="fund-meta"><span class="tag">海外</span><span class="tag">定投 200/月</span></div>
+        </div>
+        <div>
+          <div class="pct-big down">−6.82%</div>
+          <div class="right-sub">持有 600.00</div>
+        </div>
+        <div class="card-figs">
+          <div><span>仓位</span><span class="num">20.0%</span></div>
+          <div><span>累计盈亏</span><span class="num down">−109.33</span></div>
+          <div><span>最新一日</span><span class="num down">−35.04</span></div>
+        </div>
+      </button>
+      <button type="button" class="card" data-g="idx">
+        <div>
+          <div class="fund-name">中证 A500 指数基金</div>
+          <div class="fund-meta"><span class="tag">宽基</span><span class="tag">手动买入</span></div>
+        </div>
+        <div>
+          <div class="pct-big up">+2.28%</div>
+          <div class="right-sub">持有 300.00</div>
+        </div>
+        <div class="card-figs">
+          <div><span>仓位</span><span class="num">10.0%</span></div>
+          <div><span>累计盈亏</span><span class="num up">+13.17</span></div>
+          <div><span>最新一日</span><span class="num up">+6.84</span></div>
+        </div>
+      </button>
+    </div>
+
+    <p class="note" style="margin:14px 0 6px">
+      <b>注意</b> 以上为<b>模板示例数据</b>，用于演示版面与配色，不是真实持仓。仓位 = 该只金额 ÷ 合计金额；
+      累计盈亏 = 当前市值 − 累计投入；红 = 盈利，绿 = 亏损（A 股习惯）。
+    </p>
+  </div>
+
+  <!-- 02 定投计划 -->
+  <div class="sec-panel" id="panel-plans">
+    <div class="sec-body">
+      <div class="block">
+        <div class="block-title"><h4>为什么选定投</h4><span class="sec-no">WHY</span></div>
+        <ul class="ledger">
+          <li><b>摊平成本</b>：每月固定金额，净值高时买得少、低时买得多，长期拿到的平均成本更平滑。</li>
+          <li><b>省时省心</b>：上班族没空盯盘，设好自动扣款就不用管，避免情绪化操作。</li>
+          <li><b>强制储蓄</b>：发薪日先划走，先投资再消费，把钱留给未来的自己。</li>
         </ul>
       </div>
-      <div class="panel">
-        <h3>我定投什么</h3>
-        <ul>
-          <li><b>宽基指数</b>做底仓：沪深300 / 中证A500。</li>
-          <li><b>红利低波</b>做防御：股息 + 低波双因子。</li>
-          <li><b>QDII</b>做分散：纳指100，注意限购与汇率。</li>
-          <li>行业主题只放<b>极小仓位</b>博弹性。</li>
+      <div class="block">
+        <div class="block-title"><h4>我定投什么</h4><span class="sec-no">WHAT</span></div>
+        <ul class="ledger">
+          <li><b>宽基指数</b>做底仓：沪深300 / 中证A500，跟住市场平均，不赌单个行业。</li>
+          <li><b>红利低波</b>做防御：股息 + 低波双因子，跌起来相对抗打。</li>
+          <li><b>QDII</b>做分散：纳指100，注意限购与汇率，别把鸡蛋放一个市场。</li>
+          <li>行业主题只放<b>极小仓位</b>博弹性，看不懂的一分不投。</li>
         </ul>
       </div>
-      <div class="panel">
-        <h3>我的规矩</h3>
-        <ul>
+      <div class="block">
+        <div class="block-title"><h4>我的规矩</h4><span class="sec-no">RULES</span></div>
+        <ul class="ledger">
           <li>固定金额、固定日期，不因涨跌临时改。</li>
           <li>大跌不恐慌赎回，同样的钱买<b>更多份额</b>。</li>
-          <li>每年<b>再平衡</b>一次，偏离超 5% 就调回。</li>
-          <li>不追热点、不频繁换基。</li>
+          <li>每年<b>再平衡</b>一次，偏离超 5% 就调回目标仓位。</li>
+          <li>不追热点、不频繁换基，换手也是成本。</li>
         </ul>
+        <div class="callout">
+          <b>一句话版</b>：把「什么时候买、买多少」交给纪律，把「买什么」交给研究，剩下的交给时间。
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-<section id="holdings">
-  <div class="wrap">
-    <div class="sec-k">PORTFOLIO</div>
-    <h2>持仓表</h2>
-    <p style="color:var(--tx2);font-size:15px">红 = 盈利，绿 = 亏损（A 股习惯）。</p>
-    <div class="tblwrap">
-      <table>
-        <thead>
-          <tr>
-            <th>基金 / 指数</th><th>类型</th><th>持有金额(¥)</th>
-            <th>当前仓位</th><th>累计盈亏(¥)</th><th>收益率</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>沪深300 指数基金</td><td><span class="tag tag-idx">宽基</span></td>
-              <td>1,200.00</td><td>40.0%</td><td class="up">+146.46</td><td class="up">+4.87%</td></tr>
-          <tr><td>中证红利低波 100</td><td><span class="tag tag-fac">因子</span></td>
-              <td>900.00</td><td>30.0%</td><td class="up">+52.20</td><td class="up">+3.11%</td></tr>
-          <tr><td>纳斯达克100 (QDII)</td><td><span class="tag tag-qd">海外</span></td>
-              <td>600.00</td><td>20.0%</td><td class="down">−109.33</td><td class="down">−6.82%</td></tr>
-          <tr><td>中证 A500 指数基金</td><td><span class="tag tag-idx">宽基</span></td>
-              <td>300.00</td><td>10.0%</td><td class="up">+13.17</td><td class="up">+2.28%</td></tr>
-          <tr class="total"><td>合计</td><td>—</td>
-              <td>3,000.00</td><td>100%</td><td class="up">+102.50</td><td class="up">+3.42%</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="note"><b>注意</b> 以上为<b>模板示例数据</b>，用于演示版面与配色，不是真实持仓。<br>
-      仓位 = 该只金额 ÷ 合计金额；累计盈亏 = 当前市值 − 累计投入。</p>
-  </div>
-</section>
-
-<section id="mistakes">
-  <div class="wrap">
-    <div class="sec-k">PITFALLS</div>
-    <h2>常见误区</h2>
-    <p style="color:var(--tx2);font-size:15px">这些坑，我踩过一半。</p>
-    <div class="grid g3">
-      <div class="panel"><h3>亏了就当定投失败</h3>
-        <p>恰恰相反 —— 下跌时同样的钱能买到<b>更多份额</b>。真正的失败是低位停扣。</p></div>
-      <div class="panel"><h3>跌了赶紧加倍抄底</h3>
-        <p>「越跌越加倍」容易变成仓位失控。<b>固定金额、固定日期</b>才是纪律。</p></div>
-      <div class="panel"><h3>不看费率随便买</h3>
-        <p>申购费、赎回费、销售服务费、管理费，看着零点几，长期是复利的<b>隐形杀手</b>。</p></div>
-      <div class="panel"><h3>只看收益率不看类型</h3>
-        <p>「近一年 +30%」可能是个行业主题基金。先看清<b>类型 + 跟踪标的</b>。</p></div>
-      <div class="panel"><h3>跌了就换基金</h3>
-        <p>卖掉亏损的、追买入正在涨的，等于<b>卖低买高</b>，换手还有成本。</p></div>
-      <div class="panel"><h3>把定投当保本理财</h3>
-        <p>基金<b>不保本、也会亏</b>。定投只是摊平成本，靠的是长期和纪律。</p></div>
+  <!-- 03 常见误区 -->
+  <div class="sec-panel" id="panel-mistakes">
+    <div class="sec-body">
+      <div class="pitfall-grid">
+        <div class="callout warn"><b>亏了就当定投失败</b><br>恰恰相反 —— 下跌时同样的钱能买到<b>更多份额</b>。真正的失败是低位停扣。</div>
+        <div class="callout warn"><b>跌了赶紧加倍抄底</b><br>「越跌越加倍」容易变成仓位失控。<b>固定金额、固定日期</b>才是纪律。</div>
+        <div class="callout"><b>不看费率随便买</b><br>申购费、赎回费、销售服务费、管理费，看着零点几，长期是复利的<b>隐形杀手</b>。</div>
+        <div class="callout"><b>只看收益率不看类型</b><br>「近一年 +30%」可能是个行业主题基金。先看清<b>类型 + 跟踪标的</b>再下手。</div>
+        <div class="callout"><b>跌了就换基金</b><br>卖掉亏损的、追买入正在涨的，等于<b>卖低买高</b>，来回换手还有成本。</div>
+        <div class="callout warn"><b>把定投当保本理财</b><br>基金<b>不保本、也会亏</b>。定投只是摊平成本，靠的是长期和纪律。</div>
+      </div>
+      <p class="note" style="margin:16px 0 6px">这些坑，我踩过一半。写在这里提醒自己，也供参考。</p>
     </div>
   </div>
-</section>
 
-<footer class="foot">
-  <div class="wrap">
-    <p>上班族每月定投记录 · 第 <span id="footDay">—</span> 天</p>
-    <p style="margin-top:10px">定投记录与基金知识学习备忘，非投资建议 · 投资有风险</p>
-    <p style="margin-top:10px;font-size:11px;opacity:.7">源码与说明见仓库 README · 由 GitHub Pages 托管</p>
-  </div>
-</footer>
+  <!-- 页脚 -->
+  <footer class="foot">
+    <p>本页持仓与行情均为<b>模板示例数据</b>，用于演示版面与配色，不是真实持仓，也不是投资建议。<br>
+      定投记录与基金知识学习备忘 · 投资有风险，入市需谨慎。</p>
+    <span id="footDate">上班族每月定投记录 · —</span>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script>
-// 定投天数（起点 2026-08-11 = 第 1 天）
-var DCA_START = new Date(2026, 7, 11);
-function dcaDays(){
-  var t = new Date();
-  var a = new Date(DCA_START.getFullYear(), DCA_START.getMonth(), DCA_START.getDate());
-  var b = new Date(t.getFullYear(), t.getMonth(), t.getDate());
-  return Math.max(1, Math.floor((b - a) / 86400000) + 1);
-}
 (function(){
-  var n = dcaDays();
-  var s = n.toLocaleString('en-US');
-  var d = document.getElementById('dcaDay');   if(d) d.textContent = '第 ' + s + ' 天';
-  var f = document.getElementById('footDay');  if(f) f.textContent = s;
-  document.title = '上班族每月定投记录 第' + n + '天';
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  /* ---------- 定投天数（起点 2026-08-11 = 第 1 天） ---------- */
+  var DCA_START = new Date(2026, 7, 11);
+  function dcaDays(){
+    var t = new Date();
+    var a = new Date(DCA_START.getFullYear(), DCA_START.getMonth(), DCA_START.getDate());
+    var b = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    return Math.max(1, Math.floor((b - a) / 86400000) + 1);
+  }
+  var days = dcaDays();
+  var dayEl = $('dcaDay');
+  if (dayEl) dayEl.textContent = '第 ' + days + ' 天';
+  document.title = '上班族每月定投记录 第' + days + '天';
+
+  /* ---------- 时钟 + 页脚日期 ---------- */
+  var WD = ['日','一','二','三','四','五','六'];
+  var clockEl = $('clock'), footEl = $('footDate');
+  function tick(){
+    var t = new Date();
+    var s = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()) +
+            ' 周' + WD[t.getDay()] + ' ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    if (clockEl) clockEl.textContent = s;
+    if (footEl) footEl.textContent = '上班族每月定投记录 · ' + t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  /* ---------- 三市场状态（按本机时间，近似北京时间） ---------- */
+  var MKT = [
+    { name: 'A股',  open: [[570, 690], [780, 900]],  brk: [[690, 780]] },
+    { name: '港股',  open: [[570, 720], [780, 960]],  brk: [[720, 780]] },
+    { name: '美股',  open: [[1290, 1440], [0, 240]], brk: [] }
+  ];
+  function state(m, min){
+    var wk = (new Date()).getDay();
+    if (wk === 0 || wk === 6) return { cls: 'closed', label: '休市' };
+    var i;
+    for (i = 0; i < m.open.length; i++) if (min >= m.open[i][0] && min < m.open[i][1]) return { cls: 'open', label: '交易中' };
+    for (i = 0; i < m.brk.length; i++) if (min >= m.brk[i][0] && min < m.brk[i][1]) return { cls: 'break', label: '午休' };
+    return { cls: 'closed', label: '已收盘' };
+  }
+  function renderMkts(){
+    var t = new Date(), min = t.getHours() * 60 + t.getMinutes();
+    var html = '';
+    for (var i = 0; i < MKT.length; i++){
+      var s = state(MKT[i], min);
+      html += '<span class="mkt ' + s.cls + '" title="' + MKT[i].name + ' ' + s.label + '"><i></i><b>' + MKT[i].name + '</b>' + s.label + '</span>';
+    }
+    var el = $('mkts');
+    if (el) el.innerHTML = html;
+  }
+  renderMkts();
+  setInterval(renderMkts, 30000);
+
+  /* ---------- 标签页 ---------- */
+  var tabBtns = document.querySelectorAll('.sec-tabs button');
+  var panels = { hold: $('panel-hold'), plans: $('panel-plans'), mistakes: $('panel-mistakes') };
+  var toolSpans = document.querySelectorAll('[data-tools]');
+  function showTab(name){
+    var i;
+    for (i = 0; i < tabBtns.length; i++){
+      var on = tabBtns[i].getAttribute('data-tab') === name;
+      tabBtns[i].classList.toggle('on', on);
+      tabBtns[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    }
+    for (var k in panels){
+      if (panels[k]) panels[k].classList.toggle('on', k === name);
+    }
+    for (i = 0; i < toolSpans.length; i++){
+      toolSpans[i].style.display = toolSpans[i].getAttribute('data-tools') === name ? '' : 'none';
+    }
+  }
+  for (var i = 0; i < tabBtns.length; i++){
+    tabBtns[i].addEventListener('click', function(){ showTab(this.getAttribute('data-tab')); });
+  }
+  var goBtns = document.querySelectorAll('[data-go]');
+  for (var j = 0; j < goBtns.length; j++){
+    goBtns[j].addEventListener('click', function(){ showTab(this.getAttribute('data-go')); });
+  }
+  function fromHash(){
+    var h = (location.hash || '').replace('#', '');
+    if (h === 'holdings') showTab('hold');
+    else if (h === 'plans') showTab('plans');
+    else if (h === 'mistakes') showTab('mistakes');
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+  /* ---------- 分组筛选 + 排序 ---------- */
+  var body = $('holdBody');
+  var rows = body ? Array.prototype.slice.call(body.rows) : [];
+  var cards = document.querySelectorAll('#holdCards .card');
+  var curGrp = 'all', curSort = 'default';
+
+  function applyView(){
+    var i;
+    for (i = 0; i < rows.length; i++){
+      var okGrp = (curGrp === 'all' || rows[i].getAttribute('data-g') === curGrp);
+      rows[i].style.display = okGrp ? '' : 'none';
+    }
+    for (i = 0; i < cards.length; i++){
+      var okC = (curGrp === 'all' || cards[i].getAttribute('data-g') === curGrp);
+      cards[i].style.display = okC ? '' : 'none';
+    }
+    if (curSort !== 'default' && body){
+      var key = curSort === 'value' ? 'data-v' : 'data-p';
+      var sorted = rows.slice().sort(function(a, b){
+        return parseFloat(b.getAttribute(key)) - parseFloat(a.getAttribute(key));
+      });
+      for (i = 0; i < sorted.length; i++) body.appendChild(sorted[i]);
+    } else if (body){
+      var orig = rows.slice().sort(function(a, b){
+        return parseInt(a.getAttribute('data-i'), 10) - parseInt(b.getAttribute('data-i'), 10);
+      });
+      for (i = 0; i < orig.length; i++) body.appendChild(orig[i]);
+    }
+  }
+  function segBind(segId, attr, cb){
+    var seg = $(segId);
+    if (!seg) return;
+    var btns = seg.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++){
+      btns[i].addEventListener('click', function(){
+        var v = this.getAttribute(attr);
+        for (var k = 0; k < btns.length; k++) btns[k].classList.toggle('on', btns[k] === this);
+        cb(v);
+      });
+    }
+  }
+  segBind('grpSeg', 'data-g', function(v){ curGrp = v; applyView(); });
+  segBind('sortSeg', 'data-sort', function(v){ curSort = v; applyView(); });
+
+  /* ---------- 提示 ---------- */
+  var toastTimer = null;
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3200);
+  }
+  var se = $('stripEdit');
+  if (se) se.addEventListener('click', function(){
+    toast('关注指数为示例数据，非实时行情；真实行情请以交易所与基金公司公布为准。');
+  });
+  var ab = $('addBtn');
+  if (ab) ab.addEventListener('click', function(){
+    toast('这是静态模板页。记录真实持仓，请用本地「基金记账簿」（localhost:8766）。');
+  });
+  var rb = $('refreshBtn');
+  if (rb) rb.addEventListener('click', function(){ location.reload(); });
 })();
 </script>
 
