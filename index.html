@@ -5,759 +5,275 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>上班族每月定投记录</title>
 <style>
+:root{
+  --bg:#05060c; --bg2:#0a0d1a; --panel:rgba(10,14,28,.72); --panel-b:rgba(0,240,255,.22);
+  --tx:#e8f6ff; --tx2:#7c8fa8; --tx3:#4a5a72;
+  --ac:#00f0ff; --ac2:#ff2d95; --ac3:#ffe600;
+  --up:#ff2d78; --down:#00e39a;
+  --grid:rgba(0,240,255,.055);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:#000;color:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;overflow-x:hidden;transition:background .5s,color .5s;cursor:none}
-body.light{background:#f5f5f7;color:#1d1d1f}
-
-/* 自定义鼠标 */
-.cursor{position:fixed;width:8px;height:8px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .15s,width .2s,height .2s,opacity .2s;mix-blend-mode:difference}
-.cursor-follower{position:fixed;width:36px;height:36px;border:1.5px solid rgba(255,255,255,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .08s,width .3s,height .3s,border-color .3s}
-body.light .cursor-follower{border-color:rgba(0,0,0,.3)}
-.cursor.hover{width:16px;height:16px}
-.cursor-follower.hover{width:56px;height:56px;border-color:rgba(255,255,255,.7)}
-body.light .cursor-follower.hover{border-color:rgba(0,0,0,.5)}
-
-/* 加载动画 */
-.loader{position:fixed;inset:0;background:#000;z-index:10000;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s,visibility .8s}
-.loader.hide{opacity:0;visibility:hidden}
-.loader-text{font-size:48px;font-weight:700;letter-spacing:-.05em;background:linear-gradient(135deg,#fff,#666);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:pulse 2s infinite}
-.loader-bar{width:200px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:30px;overflow:hidden}
-.loader-fill{height:100%;background:linear-gradient(90deg,#fff,#888);width:0%;animation:load 2s ease-out forwards}
-@keyframes load{to{width:100%}}
-@keyframes pulse{50%{opacity:.6}}
-
-/* 导航栏 */
-nav{position:fixed;z-index:100;top:0;left:0;right:0;height:48px;background:rgba(0,0,0,.72);backdrop-filter:blur(20px) saturate(180%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.08)}
-body.light nav{background:rgba(245,245,247,.72);border-bottom:1px solid rgba(0,0,0,.08)}
-nav .inner{width:min(1100px,92%);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#c8c8cc}
-body.light nav .inner{color:#6e6e73}
-.logo{font-size:18px;color:#fff;font-weight:600;cursor:pointer;letter-spacing:-.02em}
-body.light .logo{color:#1d1d1f}
-.links{display:flex;gap:24px;align-items:center}
-.links a{color:#c8c8cc;text-decoration:none;transition:color .2s;position:relative}
-body.light .links a{color:#6e6e73}
-.links a:hover{color:#fff}
-body.light .links a:hover{color:#1d1d1f}
-.links a:after{content:"";position:absolute;bottom:-4px;left:50%;width:0;height:1.5px;background:#fff;transition:all .3s;transform:translateX(-50%)}
-body.light .links a:after{background:#1d1d1f}
-.links a:hover:after{width:100%}
-.nav-right{display:flex;gap:12px;align-items:center}
-.theme-btn{background:none;border:1px solid rgba(255,255,255,.2);color:#c8c8cc;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .3s}
-body.light .theme-btn{border:1px solid rgba(0,0,0,.15);color:#6e6e73}
-.theme-btn:hover{transform:scale(1.1);border-color:rgba(255,255,255,.5)}
-
-.search-item:hover{background:rgba(255,255,255,.1)}
-body.light .search-item:hover{background:rgba(0,0,0,.05)}
-
-/* 英雄区粒子画布 */
-.hero{height:100vh;min-height:720px;position:relative;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 38%,#1a1a2e 0%,#0a0a0f 45%,#000 75%)}
-body.light .hero{background:radial-gradient(circle at 50% 38%,#fff 0%,#f0f0f5 45%,#e5e5ea 75%)}
-.glow1,.glow2{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:float 10s ease-in-out infinite alternate;z-index:0}
-.glow1{width:600px;height:600px;background:radial-gradient(circle,rgba(100,160,255,.5),transparent 70%);top:5%;left:10%}
-.glow2{width:500px;height:500px;background:radial-gradient(circle,rgba(255,140,190,.45),transparent 70%);bottom:10%;right:8%;animation-delay:-5s}
-@keyframes float{to{transform:translate(80px,-50px) scale(1.2)}}
-.hero-content{position:relative;z-index:2;opacity:0;animation:fadeUp 1.2s ease-out .5s forwards}
-.eyebrow{font-size:16px;color:#a1a1a6;margin-bottom:22px;letter-spacing:.2em;font-weight:500}
-body.light .eyebrow{color:#6e6e73}
-.hero h1{font-size:clamp(80px,16vw,200px);letter-spacing:-.08em;margin:0;font-weight:700;background:linear-gradient(180deg,#fff 0%,#555 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
-body.light .hero h1{background:linear-gradient(180deg,#1d1d1f 0%,#86868b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.typewriter{font-size:22px;color:#a1a1a6;margin:24px 0 40px;font-weight:400;height:32px}
-body.light .typewriter{color:#6e6e73}
-.typewriter .cursor-blink{display:inline-block;width:2px;height:22px;background:#a1a1a6;margin-left:4px;vertical-align:middle;animation:blink 1s infinite}
-@keyframes blink{50%{opacity:0}}
-.btn-group{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border-radius:980px;background:#fff;color:#000;text-decoration:none;font-size:15px;font-weight:600;transition:all .3s;border:none;cursor:pointer}
-.btn:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(255,255,255,.25)}
-.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.35)}
-body.light .btn-outline{color:#1d1d1f;border-color:rgba(0,0,0,.25)}
-.btn-outline:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.7)}
-.scroll-hint{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);color:#555;font-size:12px;animation:bounce 2s infinite;z-index:2}
-@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(12px)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}
-
-/* 纪念日 */
-.anniversary{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:2;text-align:center}
-.anni-num{font-size:48px;font-weight:700;background:linear-gradient(135deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.04em}
-body.light .anni-num{background:linear-gradient(135deg,#1d1d1f,#86868b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.anni-label{font-size:12px;color:#86868b;margin-top:4px;letter-spacing:.1em}
-
-/* 通用区块 */
-.section{padding:130px 7%;position:relative}
-.section.dark{background:#000}
-.section.light{background:#f5f5f7;color:#1d1d1f}
-.section-header{text-align:center;margin-bottom:80px}
-.kicker{color:#86868b;font-size:14px;margin-bottom:14px;letter-spacing:.1em;font-weight:500}
-.section h2{font-size:clamp(46px,7vw,92px);letter-spacing:-.05em;line-height:1.05;margin:0;font-weight:700}
-.reveal{opacity:0;transform:translateY(60px);transition:all 1s cubic-bezier(.16,1,.3,1)}
-.reveal.active{opacity:1;transform:translateY(0)}
-
-/* 数据统计 */
-.stats-section{padding:90px 7%;background:linear-gradient(135deg,#0b0b0d 0%,#18181b 100%);position:relative;overflow:hidden}
-body.light .stats-section{background:linear-gradient(135deg,#fff 0%,#e5e5ea 100%)}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;max-width:1100px;margin:auto;text-align:center;position:relative;z-index:2}
-.stat-num{font-size:clamp(44px,6vw,76px);font-weight:700;background:linear-gradient(135deg,#fff,#777);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.04em}
-body.light .stat-num{background:linear-gradient(135deg,#1d1d1f,#86868b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat-label{color:#a1a1a6;font-size:14px;margin-top:10px}
-body.light .stat-label{color:#6e6e73}
-
-/* 经典语录 */
-.quotes-section{padding:120px 7%}
-.quotes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px;max-width:1150px;margin:auto}
-.quote-card{padding:44px;border-radius:26px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);position:relative;transition:all .4s}
-body.light .quote-card{background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.08)}
-.quote-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2);box-shadow:0 20px 40px rgba(0,0,0,.2)}
-body.light .quote-card:hover{border-color:rgba(0,0,0,.2);box-shadow:0 20px 40px rgba(0,0,0,.08)}
-.quote-mark{font-size:70px;line-height:1;color:rgba(255,255,255,.12);position:absolute;top:16px;left:30px;font-family:Georgia,serif}
-body.light .quote-mark{color:rgba(0,0,0,.08)}
-.quote-text{font-size:18px;line-height:1.9;color:#e0e0e5;position:relative;z-index:2;margin-bottom:24px}
-body.light .quote-text{color:#424245}
-.quote-from{font-size:14px;color:#86868b;text-align:right;font-style:italic}
-body.light .quote-from{color:#6e6e73}
-
-/* 评论区 */
-.comments-section{padding:120px 7%}
-.comments-container{max-width:800px;margin:auto}
-.comment-form{margin-bottom:50px}
-.comment-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;color:#fff;font-size:15px;outline:none;resize:none;min-height:100px;font-family:inherit;transition:border-color .3s}
-body.light .comment-input{background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.1);color:#1d1d1f}
-.comment-input:focus{border-color:rgba(255,255,255,.3)}
-body.light .comment-input:focus{border-color:rgba(0,0,0,.25)}
-.comment-form-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
-.name-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 16px;color:#fff;font-size:14px;outline:none;width:200px}
-body.light .name-input{background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.1);color:#1d1d1f}
-.submit-btn{padding:11px 26px;border-radius:980px;background:#fff;color:#000;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
-.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,255,255,.2)}
-.comments-list{display:flex;flex-direction:column;gap:20px}
-.comment-card{padding:24px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:all .3s}
-body.light .comment-card{background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.08)}
-.comment-card:hover{border-color:rgba(255,255,255,.18)}
-body.light .comment-card:hover{border-color:rgba(0,0,0,.18)}
-.comment-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.comment-author{font-weight:600;font-size:15px}
-.comment-time{font-size:12px;color:#86868b}
-body.light .comment-time{color:#6e6e73}
-.comment-text{font-size:15px;line-height:1.8;color:#d2d2d7}
-body.light .comment-text{color:#424245}
-.comment-count{font-size:14px;color:#86868b;margin-bottom:24px}
-body.light .comment-count{color:#6e6e73}
-
-/* 底部 */
-footer{padding:100px 7% 120px;text-align:center}
-footer .big-logo{font-size:clamp(70px,11vw,140px);font-weight:700;letter-spacing:-.07em;background:linear-gradient(180deg,#333,#0d0d0d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:40px}
-body.light footer .big-logo{background:linear-gradient(180deg,#bbb,#ddd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-footer p{color:#6e6e73;font-size:13px;line-height:2}
-footer .links-row{display:flex;gap:32px;justify-content:center;margin:36px 0;flex-wrap:wrap}
-footer .links-row a{color:#86868b;text-decoration:none;font-size:14px;transition:color .2s}
-footer .links-row a:hover{color:#fff}
-body.light footer .links-row a:hover{color:#1d1d1f}
-.share-row{display:flex;gap:16px;justify-content:center;margin:30px 0}
-.share-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#a1a1a6;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s}
-.share-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-3px);color:#fff}
-
-/* 回到顶部 */
-.back-top{position:fixed;z-index:200;right:30px;bottom:110px;width:46px;height:46px;border-radius:50%;background:rgba(30,30,32,.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transform:translateY(20px);transition:all .35s;pointer-events:none}
-.back-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
-.back-top:hover{transform:translateY(-4px);background:rgba(50,50,52,.9)}
-
-/* 响应式 */
-@media(max-width:1000px){
-  .gallery-grid{grid-template-columns:repeat(2,1fr)}
-  .albums-grid{grid-template-columns:repeat(2,1fr)}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:"SF Mono",Menlo,Consolas,-apple-system,"PingFang SC","Microsoft YaHei",monospace;
+  line-height:1.75;overflow-x:hidden;position:relative;
 }
-@media(max-width:768px){
-  body{cursor:auto}
-  .cursor,.cursor-follower{display:none}
-  .links{display:none}
-  .albums-grid{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:40px 20px}
-  .quotes-grid{grid-template-columns:1fr}
-  .gallery-grid{grid-template-columns:1fr;grid-auto-rows:180px}
-  .g1,.g5{grid-row:auto;grid-column:auto}
-  .section{padding:80px 6%}
-  .hero{min-height:620px}
-  .typewriter{font-size:17px}
-  .timeline:before{left:20px}
-  .tl-row{grid-template-columns:1fr;padding-left:55px}
-  .tl-row:nth-child(odd) .tl-content,.tl-row:nth-child(even) .tl-content{grid-column:1;text-align:left}
-  .tl-dot{left:20px}
-  .tl-year{font-size:30px}
-  .btn-group{flex-direction:column;align-items:center}
-  .btn{width:220px;justify-content:center}
-  .comment-form-row{flex-direction:column;gap:12px;align-items:stretch}
-  .name-input{width:100%}
-  .submit-btn{width:100%}
+/* 网格底纹 + 扫描线 */
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:46px 46px;
 }
+body:after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.16) 2px 4px);
+  mix-blend-mode:multiply;opacity:.5;
+}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 22px}
 
-/* ===== 定投主题新增样式 ===== */
-.dca-day{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;opacity:0;animation:fadeUp 1.2s ease-out .9s forwards}
-.dca-day-num{font-size:clamp(46px,8vw,86px);font-weight:700;letter-spacing:-.05em;line-height:1;
-  background:linear-gradient(135deg,#ff5f6d,#ffc371);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-body.light .dca-day-num{background:linear-gradient(135deg,#e8394a,#f0a04b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.dca-day-label{font-size:12px;letter-spacing:.22em;color:#a1a1a6;margin-top:8px}
-.dca-day-since{font-size:12px;color:#7a7a80;margin-top:4px}
-body.light .dca-day-since{color:#9a9aa0}
+/* 顶部条 */
+.top{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);
+  background:rgba(5,6,12,.82);border-bottom:1px solid rgba(0,240,255,.16)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+.brand{font-size:13px;letter-spacing:.24em;color:var(--ac);text-transform:uppercase;
+  text-shadow:0 0 12px rgba(0,240,255,.6)}
+.brand b{color:#fff}
+.topnav{display:flex;gap:20px;font-size:12px;letter-spacing:.12em}
+.topnav a{color:var(--tx2);text-decoration:none;transition:all .25s;position:relative}
+.topnav a:hover{color:var(--ac);text-shadow:0 0 10px rgba(0,240,255,.7)}
 
-.hold-wrap{max-width:1180px;margin:auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table.hold{width:100%;border-collapse:collapse;font-size:14.5px;min-width:660px}
-table.hold th{text-align:right;padding:15px 16px;font-weight:600;font-size:13px;letter-spacing:.02em;white-space:nowrap}
-table.hold th:first-child{text-align:left}
-table.hold td{padding:15px 16px;text-align:right;border-top:1px solid rgba(255,255,255,.08);white-space:nowrap;font-variant-numeric:tabular-nums}
-table.hold td:first-child{text-align:left;font-weight:500}
-body.light table.hold td{border-top:1px solid rgba(0,0,0,.07)}
-table.hold tbody tr{transition:background .2s}
-table.hold tbody tr:hover{background:rgba(255,255,255,.05)}
-body.light table.hold tbody tr:hover{background:rgba(0,0,0,.03)}
-.up{color:#ff4d4f!important;font-weight:600}
-.down{color:#22b573!important;font-weight:600}
-.hold-total td{font-weight:700;border-top:2px solid rgba(255,255,255,.18)!important;font-size:15px}
-body.light .hold-total td{border-top:2px solid rgba(0,0,0,.16)!important}
-.hold-note{max-width:1180px;margin:22px auto 0;font-size:13px;color:#86868b;line-height:1.9}
-body.light .hold-note{color:#6e6e73}
+/* 分区 */
+section{padding:78px 0;position:relative}
+.sec-k{font-size:11px;letter-spacing:.3em;color:var(--ac2);margin-bottom:12px;text-transform:uppercase}
+.sec-k:before{content:"// ";opacity:.6}
+h1{font-size:clamp(38px,7.4vw,80px);line-height:1.06;letter-spacing:-.02em;font-weight:800}
+h2{font-size:clamp(26px,4vw,42px);line-height:1.15;letter-spacing:-.01em;font-weight:800;margin-bottom:10px}
+h3{font-size:16px;font-weight:700;letter-spacing:.02em;margin-bottom:10px}
 
-.badge{display:inline-block;padding:3px 10px;border-radius:980px;font-size:12px;font-weight:600;line-height:1.6}
-.badge-idx{background:rgba(90,169,255,.16);color:#7cb8ff}
-.badge-active{background:rgba(255,197,64,.16);color:#ffc766}
-.badge-qdii{background:rgba(190,120,255,.16);color:#c08cff}
-.badge-bond{background:rgba(34,181,115,.16);color:#4ecf95}
-body.light .badge-idx{background:rgba(41,122,214,.12);color:#1f66b5}
-body.light .badge-active{background:rgba(214,150,20,.14);color:#9a6a00}
-body.light .badge-qdii{background:rgba(140,70,200,.12);color:#7a3fb5}
-body.light .badge-bond{background:rgba(24,150,95,.12);color:#13764b}
+/* 故障字 */
+.glitch{position:relative;display:inline-block;
+  text-shadow:0 0 26px rgba(0,240,255,.45)}
+.glitch:before,.glitch:after{
+  content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;
+}
+.glitch:before{color:var(--ac2);animation:gl1 3.4s infinite steps(2);clip-path:inset(0 0 62% 0)}
+.glitch:after{color:var(--ac);animation:gl2 2.7s infinite steps(2);clip-path:inset(58% 0 0 0)}
+@keyframes gl1{0%,88%,100%{transform:translate(0)}90%{transform:translate(-3px,-2px)}94%{transform:translate(2px,1px)}}
+@keyframes gl2{0%,84%,100%{transform:translate(0)}86%{transform:translate(3px,2px)}92%{transform:translate(-2px,-1px)}}
 
-.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px;max-width:1180px;margin:0 auto 46px}
-.sum-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:24px 22px}
-body.light .sum-card{background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 4px 20px rgba(0,0,0,.04)}
-.sum-card .sum-label{font-size:12.5px;color:#86868b;margin-bottom:10px;letter-spacing:.02em}
-body.light .sum-card .sum-label{color:#6e6e73}
-.sum-card .sum-val{font-size:clamp(24px,3.2vw,34px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.sum-card .sum-sub{font-size:12px;color:#7a7a80;margin-top:8px}
-body.light .sum-card .sum-sub{color:#9a9aa0}
+/* 英雄区 */
+.hero{padding:96px 0 72px;border-bottom:1px solid rgba(0,240,255,.12)}
+.eyebrow{font-size:12px;letter-spacing:.32em;color:var(--ac2);margin-bottom:20px}
+.daybadge{display:inline-block;margin-bottom:26px;padding:10px 22px;border-radius:6px;
+  border:1px solid var(--ac);background:linear-gradient(90deg,rgba(0,240,255,.14),rgba(255,45,149,.1));
+  font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;letter-spacing:.04em;
+  box-shadow:0 0 24px rgba(0,240,255,.28),inset 0 0 24px rgba(0,240,255,.1)}
+.hero p.lead{font-size:15.5px;color:var(--tx2);max-width:640px;margin-top:22px}
 
-.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1180px;margin:auto}
-.plan-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:30px 28px;transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .4s}
-.plan-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2)}
-body.light .plan-card{background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 4px 22px rgba(0,0,0,.05)}
-body.light .plan-card:hover{border-color:rgba(0,0,0,.18)}
-.plan-card h3{font-size:20px;margin:0 0 14px;font-weight:650}
-.plan-card p{font-size:14.5px;line-height:1.85;color:#c8c8cc;margin:0}
-body.light .plan-card p{color:#424245}
-.plan-num{font-size:13px;color:#86868b;letter-spacing:.14em;margin-bottom:14px;font-weight:600}
-.plan-card ul{margin:0;padding-left:2px;list-style:none}
-.plan-card li{font-size:14.5px;line-height:1.9;color:#c8c8cc;margin:9px 0;padding-left:16px;position:relative}
-body.light .plan-card li{color:#424245}
-.plan-card li:before{content:"·";position:absolute;left:2px;color:#86868b;font-weight:700}
-.plan-card li b{color:#fff}
-body.light .plan-card li b{color:#1d1d1f}
+/* 按钮 */
+.btns{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:4px;
+  font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;cursor:pointer;border:1px solid;
+  transition:all .25s}
+.btn-a{background:var(--ac);border-color:var(--ac);color:#02060d;
+  box-shadow:0 0 22px rgba(0,240,255,.45)}
+.btn-a:hover{background:#fff;border-color:#fff;box-shadow:0 0 32px rgba(255,255,255,.6)}
+.btn-b{background:transparent;border-color:var(--ac2);color:var(--ac2)}
+.btn-b:hover{background:var(--ac2);color:#0a0410;box-shadow:0 0 26px rgba(255,45,149,.6)}
 
-.page-link{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;border-radius:980px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;text-decoration:none;
-  font-size:14.5px;font-weight:600;transition:all .3s}
-.page-link:hover{background:rgba(255,255,255,.16);transform:translateY(-3px)}
-body.light .page-link{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.12);color:#1d1d1f}
-body.light .page-link:hover{background:rgba(0,0,0,.08)}
+/* 卡片 / 表 */
+.grid{display:grid;gap:18px;margin-top:32px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(272px,1fr))}
+.panel{background:var(--panel);border:1px solid var(--panel-b);border-radius:8px;padding:24px 22px;
+  position:relative;transition:all .3s;backdrop-filter:blur(8px)}
+.panel:before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:var(--ac)}
+.panel:after{content:"";position:absolute;bottom:0;right:0;width:34px;height:2px;background:var(--ac2)}
+.panel:hover{border-color:var(--ac);transform:translateY(-4px);
+  box-shadow:0 0 30px rgba(0,240,255,.2)}
+.panel p{font-size:14px;color:var(--tx2);line-height:1.85}
+.panel ul{list-style:none;margin:0}
+.panel li{font-size:14px;color:var(--tx2);padding-left:18px;position:relative;margin:8px 0;line-height:1.8}
+.panel li:before{content:"▸";position:absolute;left:0;color:var(--ac)}
+.panel li b,.panel p b{color:#fff}
 
-@media(max-width:768px){
-  .dca-day{top:52px}
-  .sum-grid{gap:12px}
-  .plan-grid{gap:14px}
-  table.hold{font-size:13.5px;min-width:600px}
-  table.hold th,table.hold td{padding:12px 12px}
+.tblwrap{overflow-x:auto;margin-top:30px;border:1px solid var(--panel-b);border-radius:8px;
+  background:var(--panel);backdrop-filter:blur(8px)}
+table{width:100%;border-collapse:collapse;min-width:680px;font-size:13.5px}
+th{text-align:right;padding:15px 16px;font-size:11.5px;letter-spacing:.14em;color:var(--ac);
+  text-transform:uppercase;border-bottom:1px solid var(--ac);white-space:nowrap;
+  background:rgba(0,240,255,.05)}
+th:first-child{text-align:left}
+td{padding:14px 16px;text-align:right;border-bottom:1px solid rgba(255,255,255,.055);
+  white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--tx2)}
+td:first-child{text-align:left;color:#fff;font-weight:600}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:rgba(0,240,255,.06)}
+tr.total td{color:#fff;font-weight:800;border-top:1px solid var(--ac);border-bottom:none;
+  background:rgba(0,240,255,.07)}
+.up{color:var(--up)!important;font-weight:700}
+.down{color:var(--down)!important;font-weight:700}
+.tag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:11px;font-weight:700;
+  letter-spacing:.04em;border:1px solid}
+.tag-idx{color:var(--ac);border-color:rgba(0,240,255,.5);background:rgba(0,240,255,.1)}
+.tag-fac{color:var(--ac3);border-color:rgba(255,230,0,.5);background:rgba(255,230,0,.1)}
+.tag-qd{color:var(--ac2);border-color:rgba(255,45,149,.5);background:rgba(255,45,149,.1)}
+.note{margin-top:20px;font-size:12.5px;color:var(--tx3);line-height:1.9}
+.foot{padding:60px 0 70px;border-top:1px solid rgba(0,240,255,.12);text-align:center;
+  font-size:12px;color:var(--tx3);letter-spacing:.08em}
+@media(max-width:760px){
+  section{padding:58px 0}
+  .hero{padding:66px 0 52px}
+  .topnav{display:none}
+  table{font-size:12.5px;min-width:620px}
+  th,td{padding:11px 11px}
 }
 </style>
 </head>
 <body>
 
-<!-- 加载动画 -->
-<div class="loader" id="loader">
-  <div class="loader-text">定投</div>
-  <div class="loader-bar"><div class="loader-fill"></div></div>
-</div>
-
-<!-- 自定义鼠标 -->
-<div class="cursor" id="cursor"></div>
-<div class="cursor-follower" id="cursorFollower"></div>
-
-<!-- 导航栏 -->
-<nav>
-  <div class="inner">
-    <div class="logo" onclick="scrollTo({top:0,behavior:'smooth'})">月月定投</div>
-    <div class="links">
-      <a href="#home">首页</a>
+<header class="top" id="top">
+  <div class="wrap">
+    <div class="brand"><b>每月定投记录</b></div>
+    <nav class="topnav">
       <a href="#plans">定投计划</a>
       <a href="#holdings">持仓表</a>
       <a href="#mistakes">常见误区</a>
-      <a href="#fund">知识手册</a>
-      <a href="#comments">留言</a>
-    </div>
-    <div class="nav-right">
-      <button class="theme-btn" onclick="toggleTheme()" title="切换主题">☾</button>
-    </div>
+      <a href="#top">回到顶部</a>
+    </nav>
   </div>
-</nav>
+</header>
 
-
-<!-- 英雄区 -->
 <section class="hero" id="home">
-  <div class="glow1"></div>
-  <div class="glow2"></div>
-  <div class="dca-day">
-    <div class="dca-day-num" id="dcaDay">第 — 天</div>
-    <div class="dca-day-label">MONTHLY INVESTMENT JOURNEY</div>
-    <div class="dca-day-since" id="dcaSince">自 2026-08-11 起算</div>
-  </div>
-  <div class="hero-content">
-    <div class="eyebrow">DCA · MONTHLY RECORD</div>
-    <h1 id="heroTitle">上班族每月定投记录</h1>
-    <div class="typewriter" id="typewriter"></div>
-    <div class="btn-group">
-      <a class="btn" href="#holdings">查看持仓表 →</a>
-      <a class="btn btn-outline" href="#fund">看看基金知识 ♪</a>
-    </div>
-  </div>
-  <div class="scroll-hint">↓ 向下滚动查看记录</div>
-</section>
-
-<!-- 数据统计 -->
-<section class="stats-section">
-  <div class="stats-grid">
-    <div class="reveal"><div class="stat-num" data-target="6">0</div><div class="stat-label">只定投基金</div></div>
-    <div class="reveal" style="transition-delay:.1s"><div class="stat-num" data-target="1">0</div><div class="stat-label">次 / 每月定投</div></div>
-    <div class="reveal" style="transition-delay:.2s"><div class="stat-num" data-target="1">0</div><div class="stat-label">笔 / 每月一笔</div></div>
-    <div class="reveal" style="transition-delay:.3s"><div class="stat-num" data-target="100">0</div><div class="stat-label">元起投（场外）</div></div>
-  </div>
-</section>
-
-<!-- 定投计划 -->
-<section class="section dark" id="plans">
-  <div class="section-header reveal">
-    <div class="kicker">PLANS · 定投计划</div>
-    <h2>把工资的零头，<br>交给自己未来。</h2>
-  </div>
-  <div class="sum-grid">
-    <div class="sum-card reveal">
-      <div class="sum-label">计划起点</div>
-      <div class="sum-val">2026.08.11</div>
-      <div class="sum-sub" id="planDays">第 — 天</div>
-    </div>
-    <div class="sum-card reveal" style="transition-delay:.08s">
-      <div class="sum-label">月定投金额</div>
-      <div class="sum-val" id="planPerMonth">¥1,000</div>
-      <div class="sum-sub">每月发薪后 1~3 日扣款</div>
-    </div>
-    <div class="sum-card reveal" style="transition-delay:.16s">
-      <div class="sum-label">累计投入</div>
-      <div class="sum-val" id="planInvested">¥3,000</div>
-      <div class="sum-sub" id="planTimes">已扣 3 期</div>
-    </div>
-    <div class="sum-card reveal" style="transition-delay:.24s">
-      <div class="sum-label">累计收益</div>
-      <div class="sum-val up" id="planProfit">+¥102.50</div>
-      <div class="sum-sub">收益率 +3.42%</div>
-    </div>
-  </div>
-  <div class="plan-grid">
-    <div class="plan-card reveal">
-      <div class="plan-num">01 / WHY</div>
-      <h3>为什么选定投</h3>
-      <ul>
-        <li><b>摊平成本</b>：每月固定金额买入，净值高时买得少、低时买得多，自动摊平成本，避免一次性买在高点。</li>
-        <li><b>省时省心</b>：上班族没空盯盘，设好自动扣款就不用管，把精力留给工作。</li>
-        <li><b>强制储蓄</b>：发薪日自动划走，先投资再消费，避免钱不知不觉花光。</li>
-      </ul>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.1s">
-      <div class="plan-num">02 / WHAT</div>
-      <h3>我定投什么</h3>
-      <ul>
-        <li><b>宽基指数</b>做底仓：沪深300 / 中证A500 / 标普500，不押单一行业，求稳。</li>
-        <li><b>红利低波</b>做防御：股息 + 低波动双因子，震荡市更抗跌。</li>
-        <li><b>QDII</b>做分散：纳指100 等海外资产，对冲单一市场风险（注意限购与汇率）。</li>
-        <li>行业主题只放<b>极小仓位</b>博弹性。</li>
-      </ul>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.2s">
-      <div class="plan-num">03 / RULES</div>
-      <h3>我给自己定的规矩</h3>
-      <ul>
-        <li>每月<b>固定金额、固定日期</b>扣款，不因为涨跌临时改。</li>
-        <li>大跌不恐慌赎回，只是同样的钱能买到<b>更多份额</b>。</li>
-        <li>每年<b>再平衡</b>一次，偏离目标比例超过 5% 就调回来。</li>
-        <li><b>不追热点、不频繁换基</b>，换手本身就是成本。</li>
-      </ul>
+  <div class="wrap">
+    <div class="eyebrow">MONTHLY INVESTMENT RECORD</div>
+    <div class="daybadge" id="dcaDay">第 — 天</div>
+    <h1>上班族每月定投记录</h1>
+    <p class="lead">从 2026 年 8 月 11 日起，每月固定一笔，不猜点位、只做纪律。<br>
+      这里记录我的定投计划、持仓变化，和踩过的那些坑。</p>
+    <div class="btns">
+      <a class="btn btn-a" href="#holdings">查看持仓表</a>
+      <a class="btn btn-b" href="#mistakes">看看踩过的坑</a>
     </div>
   </div>
 </section>
 
-<!-- 持仓表（彩色版） -->
-<section class="section dark" id="holdings">
-  <div class="section-header reveal">
-    <div class="kicker">PORTFOLIO · 持仓表</div>
-    <h2>每个月多买一点，<br>慢慢变厚。</h2>
-  </div>
-  <div class="hold-wrap reveal">
-    <table class="hold">
-      <thead>
-        <tr>
-          <th>基金 / 指数</th>
-          <th>类型</th>
-          <th>持有金额(¥)</th>
-          <th>当前仓位</th>
-          <th>累计盈亏(¥)</th>
-          <th>收益率</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>沪深300 指数基金</td>
-          <td><span class="badge badge-idx">宽基 · 场外</span></td>
-          <td>1,200.00</td>
-          <td>40.0%</td>
-          <td class="up">+146.46</td>
-          <td class="up">+4.87%</td>
-        </tr>
-        <tr>
-          <td>中证红利低波 100</td>
-          <td><span class="badge badge-active">因子 · 场外</span></td>
-          <td>900.00</td>
-          <td>30.0%</td>
-          <td class="up">+52.20</td>
-          <td class="up">+3.11%</td>
-        </tr>
-        <tr>
-          <td>纳斯达克100 (QDII)</td>
-          <td><span class="badge badge-qdii">海外 · 场外</span></td>
-          <td>600.00</td>
-          <td>20.0%</td>
-          <td class="down">−109.33</td>
-          <td class="down">−6.82%</td>
-        </tr>
-        <tr>
-          <td>中证 A500 指数基金</td>
-          <td><span class="badge badge-idx">宽基 · 场外</span></td>
-          <td>300.00</td>
-          <td>10.0%</td>
-          <td class="up">+13.17</td>
-          <td class="up">+2.28%</td>
-        </tr>
-        <tr class="hold-total">
-          <td>合计</td>
-          <td>—</td>
-          <td>3,000.00</td>
-          <td>100%</td>
-          <td class="up">+102.50</td>
-          <td class="up">+3.42%</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="hold-note">
-    ⚠️ <b>以上为模板示例数据</b>，用来演示版面与配色规则，<b>不是真实持仓</b>。要换成你自己的数字，告诉我每只基金的「持有金额 + 累计盈亏」即可，我直接改。<br>
-    配色遵循 A 股习惯：<span class="up">红 = 盈利 / 上涨</span>，<span class="down">绿 = 亏损 / 下跌</span>。<br>
-    仓位 = 该只金额 ÷ 合计金额。累计盈亏 = 当前市值 − 累计投入（含已实现收益）。
-  </p>
-</section>
-
-<!-- 常见误区 -->
-<section class="section light" id="mistakes">
-  <div class="section-header reveal">
-    <div class="kicker">PITFALLS · 常见误区</div>
-    <h2>这些坑，<br>我踩过一半。</h2>
-  </div>
-  <div class="plan-grid">
-    <div class="plan-card reveal">
-      <div class="plan-num">误区 01</div>
-      <h3>把亏了就当定投失败</h3>
-      <p>恰恰相反 —— 下跌时同样的钱能买到<b>更多份额</b>，正是定投发挥摊平作用的时候。真正的失败是低位停扣、割在底部。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.06s">
-      <div class="plan-num">误区 02</div>
-      <h3>跌了赶紧加倍抄底</h3>
-      <p>「下跌就加倍」很容易变成越投越多、仓位失控。<b>固定金额、固定日期</b>才是纪律，情绪化加码是赌。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.12s">
-      <div class="plan-num">误区 03</div>
-      <h3>不看费率随便买</h3>
-      <p>申购费、赎回费、销售服务费、管理托管费，看似零点几，长期是复利的<b>隐形杀手</b>。同样跟踪一个指数，费率低的就是更划算。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.18s">
-      <div class="plan-num">误区 04</div>
-      <h3>只看收益率不看类型</h3>
-      <p>「近一年 +30%」可能是个单一行业主题基金，波动极大。买之前先看清<b>基金类型 + 跟踪标的 + 行业集中度</b>。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.24s">
-      <div class="plan-num">误区 05</div>
-      <h3>跌了就换基金</h3>
-      <p>卖掉亏损的、追买入正在涨的，等于<b>卖低买高</b>。换基本身也有成本，还容易丢掉跟踪已久的低位筹码。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.3s">
-      <div class="plan-num">误区 06</div>
-      <h3>把定投当保本理财</h3>
-      <p>基金<b>不保本、也会亏</b>。定投只是摊平成本、降低择时难度，靠的是长期和纪律，不是保证不亏。</p>
-    </div>
-  </div>
-</section>
-
-<!-- 知识手册入口 -->
-<section class="section dark" id="fund">
-  <div class="section-header reveal">
-    <div class="kicker">HANDBOOK · 知识手册</div>
-    <h2>先看懂，<br>再下手。</h2>
-  </div>
-  <div class="plan-grid">
-    <div class="plan-card reveal">
-      <div class="plan-num">01 / BASICS</div>
-      <h3>定投原理</h3>
-      <p>定期定额买入，用「时间换空间」。净值低时买到的份额多、高时少，长期看成本被摊平，不用猜点位。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.06s">
-      <div class="plan-num">02 / TYPES</div>
-      <h3>常见基金类型</h3>
-      <p>货币 <b>&lt;</b> 债券 <b>&lt;</b> 混合 <b>&lt;</b> 股票 / QDII / FOF（按风险从低到高）。份额还分 A / C —— 长拿选 A、短炒选 C。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.12s">
-      <div class="plan-num">03 / COST</div>
-      <h3>费率与风险指标</h3>
-      <p>申购费、赎回费、销售服务费、管理托管费；风险看最大回撤、波动率、夏普比率。费率是长期收益的隐形税。</p>
-    </div>
-    <div class="plan-card reveal" style="transition-delay:.18s">
-      <div class="plan-num">04 / PITFALLS</div>
-      <h3>常见误区</h3>
-      <p>亏了就停扣、跌了加倍抄底、不看费率、把定投当保本 —— 上面那节把六个坑都摊开讲了。</p>
-    </div>
-  </div>
-  <div style="text-align:center;margin-top:56px" class="reveal">
-    <a class="page-link" href="fund.html">打开《基金知识手册》完整版 →</a>
-  </div>
-</section>
-
-<!-- 评论区 -->
-<section class="section dark" id="comments">
-  <div class="section-header reveal">
-    <div class="kicker">NOTES · 记录本</div>
-    <h2>留一句，<br>给以后的自己。</h2>
-  </div>
-  <div class="comments-container">
-    <div class="comment-form reveal">
-      <textarea class="comment-input" id="commentText" placeholder="写下这个月的定投心得，或者给自己的一句提醒..."></textarea>
-      <div class="comment-form-row">
-        <input type="text" class="name-input" id="commentName" placeholder="你的昵称">
-        <button class="submit-btn" onclick="submitComment()">发布留言 →</button>
+<section id="plans">
+  <div class="wrap">
+    <div class="sec-k">PLANS</div>
+    <h2>定投计划</h2>
+    <p style="color:var(--tx2);font-size:15px">为什么选它、投了什么、给自己定了哪些规矩。</p>
+    <div class="grid g3">
+      <div class="panel">
+        <h3>为什么选定投</h3>
+        <ul>
+          <li><b>摊平成本</b>：每月固定金额，净值高时买得少、低时买得多。</li>
+          <li><b>省时省心</b>：上班族没空盯盘，设好自动扣款就不用管。</li>
+          <li><b>强制储蓄</b>：发薪日先划走，先投资再消费。</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>我定投什么</h3>
+        <ul>
+          <li><b>宽基指数</b>做底仓：沪深300 / 中证A500。</li>
+          <li><b>红利低波</b>做防御：股息 + 低波双因子。</li>
+          <li><b>QDII</b>做分散：纳指100，注意限购与汇率。</li>
+          <li>行业主题只放<b>极小仓位</b>博弹性。</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>我的规矩</h3>
+        <ul>
+          <li>固定金额、固定日期，不因涨跌临时改。</li>
+          <li>大跌不恐慌赎回，同样的钱买<b>更多份额</b>。</li>
+          <li>每年<b>再平衡</b>一次，偏离超 5% 就调回。</li>
+          <li>不追热点、不频繁换基。</li>
+        </ul>
       </div>
     </div>
-    <div class="comment-count reveal" id="commentCount">共 0 条留言</div>
-    <div class="comments-list" id="commentsList"></div>
   </div>
 </section>
 
-<!-- 底部 -->
-<footer>
-  <div class="big-logo">DCA</div>
-  <div class="links-row">
-    <a href="#home">首页</a>
-    <a href="#plans">定投计划</a>
-    <a href="#holdings">持仓表</a>
-    <a href="#mistakes">常见误区</a>
-    <a href="fund.html">知识手册</a>
-    <a href="#comments">留言</a>
+<section id="holdings">
+  <div class="wrap">
+    <div class="sec-k">PORTFOLIO</div>
+    <h2>持仓表</h2>
+    <p style="color:var(--tx2);font-size:15px">红 = 盈利，绿 = 亏损（A 股习惯）。</p>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr>
+            <th>基金 / 指数</th><th>类型</th><th>持有金额(¥)</th>
+            <th>当前仓位</th><th>累计盈亏(¥)</th><th>收益率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>沪深300 指数基金</td><td><span class="tag tag-idx">宽基</span></td>
+              <td>1,200.00</td><td>40.0%</td><td class="up">+146.46</td><td class="up">+4.87%</td></tr>
+          <tr><td>中证红利低波 100</td><td><span class="tag tag-fac">因子</span></td>
+              <td>900.00</td><td>30.0%</td><td class="up">+52.20</td><td class="up">+3.11%</td></tr>
+          <tr><td>纳斯达克100 (QDII)</td><td><span class="tag tag-qd">海外</span></td>
+              <td>600.00</td><td>20.0%</td><td class="down">−109.33</td><td class="down">−6.82%</td></tr>
+          <tr><td>中证 A500 指数基金</td><td><span class="tag tag-idx">宽基</span></td>
+              <td>300.00</td><td>10.0%</td><td class="up">+13.17</td><td class="up">+2.28%</td></tr>
+          <tr class="total"><td>合计</td><td>—</td>
+              <td>3,000.00</td><td>100%</td><td class="up">+102.50</td><td class="up">+3.42%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">⚠️ 以上为<b>模板示例数据</b>，用于演示版面与配色，不是真实持仓。<br>
+      仓位 = 该只金额 ÷ 合计金额；累计盈亏 = 当前市值 − 累计投入。</p>
   </div>
-  <div class="share-row">
-    <button class="share-btn" title="分享">↗</button>
-    <button class="share-btn" title="收藏">☆</button>
-    <button class="share-btn" title="点赞">♡</button>
-    <button class="share-btn" title="复制链接">🔗</button>
+</section>
+
+<section id="mistakes">
+  <div class="wrap">
+    <div class="sec-k">PITFALLS</div>
+    <h2>常见误区</h2>
+    <p style="color:var(--tx2);font-size:15px">这些坑，我踩过一半。</p>
+    <div class="grid g3">
+      <div class="panel"><h3>亏了就当定投失败</h3>
+        <p>恰恰相反 —— 下跌时同样的钱能买到<b>更多份额</b>。真正的失败是低位停扣。</p></div>
+      <div class="panel"><h3>跌了赶紧加倍抄底</h3>
+        <p>「越跌越加倍」容易变成仓位失控。<b>固定金额、固定日期</b>才是纪律。</p></div>
+      <div class="panel"><h3>不看费率随便买</h3>
+        <p>申购费、赎回费、销售服务费、管理费，看着零点几，长期是复利的<b>隐形杀手</b>。</p></div>
+      <div class="panel"><h3>只看收益率不看类型</h3>
+        <p>「近一年 +30%」可能是个行业主题基金。先看清<b>类型 + 跟踪标的</b>。</p></div>
+      <div class="panel"><h3>跌了就换基金</h3>
+        <p>卖掉亏损的、追买入正在涨的，等于<b>卖低买高</b>，换手还有成本。</p></div>
+      <div class="panel"><h3>把定投当保本理财</h3>
+        <p>基金<b>不保本、也会亏</b>。定投只是摊平成本，靠的是长期和纪律。</p></div>
+    </div>
   </div>
-  <p>上班族每月定投记录 · 第 <span id="footDay">—</span> 天<br>定投记录与基金知识学习备忘，非投资建议</p>
-  <p style="margin-top:24px;color:#424245">投资有风险，入市需谨慎 · 本站仅为个人学习记录</p>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>上班族每月定投记录 · 第 <span id="footDay">—</span> 天</p>
+    <p style="margin-top:10px">定投记录与基金知识学习备忘，非投资建议 · 投资有风险</p>
+    <p style="margin-top:10px;font-size:11px;opacity:.7">源码与说明见仓库 README · 由 GitHub Pages 托管</p>
+  </div>
 </footer>
 
-<!-- 回到顶部 -->
-<button class="back-top" id="backTop" onclick="scrollTo({top:0,behavior:'smooth'})">↑</button>
-
 <script>
-// 加载动画
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    document.getElementById('loader').classList.add('hide');
-  },2200);
-});
-
-// 自定义鼠标
-const cursor = document.getElementById('cursor');
-const follower = document.getElementById('cursorFollower');
-let mx=0,my=0,fx=0,fy=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  cursor.style.left=mx+'px';cursor.style.top=my+'px';
-});
-function animateCursor(){
-  fx += (mx-fx)*.15; fy += (my-fy)*.15;
-  follower.style.left=fx+'px';follower.style.top=fy+'px';
-  requestAnimationFrame(animateCursor);
-}
-animateCursor();
-document.querySelectorAll('a,button,.song-item,.album-card,.gallery-item,.quote-card').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cursor.classList.add('hover');follower.classList.add('hover')});
-  el.addEventListener('mouseleave',()=>{cursor.classList.remove('hover');follower.classList.remove('hover')});
-});
-
-
-// 打字机效果
-const phrases = [
-  '每月一笔，把时间变成复利',
-  '不猜点位，只做纪律',
-  '工资的零头，存给未来',
-  '跌了不停扣，涨了不追加',
-  '慢慢来，比较快'
-];
-let phraseIdx = 0, charIdx = 0, isDeleting = false;
-const typewriter = document.getElementById('typewriter');
-function type(){
-  const current = phrases[phraseIdx];
-  if(isDeleting){
-    typewriter.innerHTML = current.substring(0,charIdx-1) + '<span class="cursor-blink"></span>';
-    charIdx--;
-    if(charIdx < 0){
-      isDeleting = false;
-      phraseIdx = (phraseIdx+1) % phrases.length;
-      setTimeout(type, 500);
-      return;
-    }
-    setTimeout(type, 40);
-  } else {
-    typewriter.innerHTML = current.substring(0,charIdx+1) + '<span class="cursor-blink"></span>';
-    charIdx++;
-    if(charIdx > current.length){
-      isDeleting = true;
-      setTimeout(type, 2500);
-      return;
-    }
-    setTimeout(type, 80);
-  }
-}
-setTimeout(type, 1500);
-
-// 主题切换
-function toggleTheme(){
-  document.body.classList.toggle('light');
-  const btn = document.querySelector('.theme-btn');
-  btn.textContent = document.body.classList.contains('light') ? '☀' : '☾';
-}
-
-
-// 滚动显示动画
-const observer = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting) e.target.classList.add('active');
-  });
-},{threshold:0.1});
-document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
-
-// 数字计数动画
-function animateCounter(el){
-  const target = parseInt(el.dataset.target);
-  const duration = 2500;
-  const start = performance.now();
-  function update(now){
-    const progress = Math.min((now-start)/duration,1);
-    const eased = 1 - Math.pow(1-progress,3);
-    el.textContent = Math.floor(target * eased);
-    if(progress < 1) requestAnimationFrame(update);
-    else el.textContent = target + (target>=100?'+':'');
-  }
-  requestAnimationFrame(update);
-}
-const statsObserver = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      e.target.querySelectorAll('.stat-num').forEach(n=>animateCounter(n));
-      statsObserver.unobserve(e.target);
-    }
-  });
-},{threshold:0.5});
-statsObserver.observe(document.querySelector('.stats-grid'));
-
-// 回到顶部按钮
-const backTop = document.getElementById('backTop');
-window.addEventListener('scroll',()=>{
-  if(window.scrollY > 700) backTop.classList.add('show');
-  else backTop.classList.remove('show');
-});
-
-
-
-// 评论区功能
-function loadComments(){
-  const comments = JSON.parse(localStorage.getItem('dca_notes') || '[]');
-  const list = document.getElementById('commentsList');
-  document.getElementById('commentCount').textContent = `共 ${comments.length} 条留言`;
-  if(comments.length === 0){
-    list.innerHTML = '<p style="text-align:center;color:#6e6e73;padding:40px 0">还没有留言，来做第一个吧 ✨</p>';
-    return;
-  }
-  list.innerHTML = comments.map(c=>`
-    <div class="comment-card">
-      <div class="comment-header">
-        <span class="comment-author">${escapeHtml(c.name)}</span>
-        <span class="comment-time">${c.time}</span>
-      </div>
-      <p class="comment-text">${escapeHtml(c.text)}</p>
-    </div>
-  `).join('');
-}
-function escapeHtml(s){
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-function submitComment(){
-  const text = document.getElementById('commentText').value.trim();
-  const name = document.getElementById('commentName').value.trim() || '匿名歌迷';
-  if(!text){alert('写点什么再发布吧～');return}
-  const comments = JSON.parse(localStorage.getItem('dca_notes') || '[]');
-  const now = new Date();
-  const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  comments.unshift({name, text, time});
-  localStorage.setItem('dca_notes', JSON.stringify(comments));
-  document.getElementById('commentText').value = '';
-  document.getElementById('commentName').value = '';
-  loadComments();
-}
-// 初始化一些示例评论
-if(!localStorage.getItem('dca_notes')){
-  const demo = [
-    {name:'第 1 期', text:'2026-08-11 开第一笔。先记下来：每月 1000，不因为涨跌改。', time:'2026-08-11 20:15'},
-    {name:'第 2 期', text:'这个月跌了点，份额反而买多了一点。不动手，继续扣。', time:'2026-09-11 20:40'},
-    {name:'第 3 期', text:'红了一只、绿了一只。看完持仓表深呼吸，继续。', time:'2026-10-11 21:05'}
-  ];
-  localStorage.setItem('dca_notes', JSON.stringify(demo));
-}
-loadComments();
-
-// ===== 定投天数计算（2026-08-11 起，第 1 天）=====
-const DCA_START = new Date(2026, 7, 11);   // 月份从 0 开始：7 = 8 月
+// 定投天数（起点 2026-08-11 = 第 1 天）
+var DCA_START = new Date(2026, 7, 11);
 function dcaDays(){
-  const today = new Date();
-  const t0 = new Date(DCA_START.getFullYear(), DCA_START.getMonth(), DCA_START.getDate());
-  const t1 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return Math.max(1, Math.floor((t1 - t0) / 86400000) + 1);
+  var t = new Date();
+  var a = new Date(DCA_START.getFullYear(), DCA_START.getMonth(), DCA_START.getDate());
+  var b = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  return Math.max(1, Math.floor((b - a) / 86400000) + 1);
 }
-function updateDca(){
-  const n = dcaDays();
-  const txt = '第 ' + n.toLocaleString('en-US') + ' 天';
-  const dayEl = document.getElementById('dcaDay');
-  if(dayEl) dayEl.textContent = txt;
-  const titleEl = document.getElementById('heroTitle');
-  if(titleEl) titleEl.textContent = '上班族每月定投记录 第' + n.toLocaleString('en-US') + '天';
+(function(){
+  var n = dcaDays();
+  var s = n.toLocaleString('en-US');
+  var d = document.getElementById('dcaDay');   if(d) d.textContent = '第 ' + s + ' 天';
+  var f = document.getElementById('footDay');  if(f) f.textContent = s;
   document.title = '上班族每月定投记录 第' + n + '天';
-  const footEl = document.getElementById('footDay');
-  if(footEl) footEl.textContent = n.toLocaleString('en-US');
-  const pStart = document.getElementById('dcaSince');
-  if(pStart) pStart.textContent = '自 2026-08-11 起算 · 已坚持 ' + (n - 1) + ' 天';
-  const planDays = document.getElementById('planDays');
-  if(planDays) planDays.textContent = '第 ' + n.toLocaleString('en-US') + ' 天';
-}
-updateDca();
+})();
 </script>
+
 </body>
 </html>
