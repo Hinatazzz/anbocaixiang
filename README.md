@@ -52,7 +52,7 @@ E:\下载\WorkBuddy\
 │   ├── index.html            ← 最初的旧站（备份）
 │   └── index_new.html        ← 上一版主站（极简结构版）
 ├── site_themes/              ← 三种风格备选
-│   ├── variant-cyberpunk.html   ← ★ 当前线上版（赛博朋克）
+│   ├── variant-cyberpunk.html   ← [当前] 当前线上版（赛博朋克）
 │   ├── variant-minimal.html     ← 备选：极简留白
 │   ├── variant-warm.html        ← 备选：暖木深色
 │   └── preview.html             ← 三种风格并排对比预览
@@ -78,8 +78,8 @@ E:\下载\WorkBuddy\
 
 页面遵循 **A 股习惯**，与欧美相反，看的时候不要搞反：
 
-- 🔴 **红色 = 涨 / 盈利** → `.up { color:#ff2d78 }`
-- 🟢 **绿色 = 跌 / 亏损** → `.down { color:#00e39a }`
+-  **红色 = 涨 / 盈利** → `.up { color:#ff2d78 }`
+-  **绿色 = 跌 / 亏损** → `.down { color:#00e39a }`
 
 赛博朋克主题下这两个色值也做了霓虹化处理，但**语义仍是红涨绿跌**。
 
@@ -141,7 +141,7 @@ iPhone Safari 打开后可「添加到主屏幕」，当成一个小应用用。
 
 提交成功后 **30~60 秒**生效，然后访问 `https://guojunchen.cn/` 验证。
 
-### ⚠️ 两个必须注意的坑
+###  两个必须注意的坑
 
 **1. 不要把整个 `E:\下载\WorkBuddy` 当发布源。**
 那个目录里有影片命名资料库、改名清单等私人文件，会把隐私内容一起传上去。
